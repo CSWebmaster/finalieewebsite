@@ -1,8 +1,9 @@
 import express from "express";
 import { createTransport } from "nodemailer";
 import cors from "cors";
-import "dotenv/config";
-import { mailConfig } from "./config/mail.ts";
+import dotenv from "dotenv";
+
+dotenv.config(); // initial load
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -34,19 +35,29 @@ app.use(express.json());
 app.use("/api/send-email", rateLimiter);
 
 
-// Email transporter
-const transporter = createTransport({
-  host: mailConfig.host,
-  port: mailConfig.port,
-  secure: mailConfig.port === 465,
-  auth: {
-    user: mailConfig.user,
-    pass: mailConfig.pass,
-  },
-});
-
 // POST /api/send-email
 app.post("/api/send-email", async (req: express.Request, res: express.Response) => {
+  // Force reload .env file values dynamically per request
+  dotenv.config({ override: true });
+  
+  const dynamicMailConfig = {
+    host: process.env.SMTP_HOST || "smtp.gmail.com",
+    port: Number(process.env.SMTP_PORT) || 587,
+    user: process.env.SMTP_USER || "",
+    pass: process.env.SMTP_PASS || "",
+    to: process.env.MAIL_TO || "",
+  };
+
+  const transporter = createTransport({
+    host: dynamicMailConfig.host,
+    port: dynamicMailConfig.port,
+    secure: dynamicMailConfig.port === 465,
+    auth: {
+      user: dynamicMailConfig.user,
+      pass: dynamicMailConfig.pass,
+    },
+  });
+
   const { name, email, phone, message, page, fields } = req.body;
 
   try {
@@ -60,7 +71,7 @@ app.post("/api/send-email", async (req: express.Request, res: express.Response) 
       res.status(400).json({ error: "Invalid email address." });
       return;
     }
-    if (!mailConfig.to) {
+    if (!dynamicMailConfig.to) {
       res.status(500).json({ error: "Mail recipient is not configured." });
       return;
     }
@@ -112,10 +123,10 @@ app.post("/api/send-email", async (req: express.Request, res: express.Response) 
       </div>
     `;
 
-    console.log("Sending email from:", mailConfig.user, "to:", mailConfig.to);
+    console.log("Sending email from:", dynamicMailConfig.user, "to:", dynamicMailConfig.to);
     await transporter.sendMail({
-      from: `"IEEE SOU SB Website" <${mailConfig.user}>`,
-      to: mailConfig.to,
+      from: `"IEEE SOU SB Website" <${dynamicMailConfig.user}>`,
+      to: dynamicMailConfig.to,
       replyTo: email,
       subject,
       html,

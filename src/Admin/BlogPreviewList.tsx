@@ -11,6 +11,7 @@ interface BlogPreviewListProps {
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
+  blog: "bg-orange-100 text-orange-700",
   research: "bg-purple-100 text-purple-700",
   article: "bg-blue-100 text-blue-700",
   project: "bg-green-100 text-green-700",
@@ -96,7 +97,7 @@ const BlogPreviewList: React.FC<BlogPreviewListProps> = ({ onEdit, setSuccess, s
     <div className="space-y-3">
       {blogs.map((blog) => {
         const author = blog.author || { name: blog.author_name || "Unknown", image: "" };
-        const category = blog.category || "article";
+        const category = blog.category || "blog";
         const imageCount = (blog.images || []).filter((i: string) => i.trim()).length;
         const githubCount = (blog.githubLinks || []).filter((i: string) => i.trim()).length;
         const youtubeCount = (blog.youtubeLinks || []).filter((i: string) => i.trim()).length;

@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ArrowLeft } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 const MemberDetails = () => {
   const { id } = useParams();
   const [member, setMember] = useState<any>(null);
@@ -39,8 +40,30 @@ const MemberDetails = () => {
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500"></div>
+        <Skeleton className="w-32 h-10 mb-6" />
+        <div className="grid md:grid-cols-3 gap-6">
+          <Card className="md:col-span-1">
+            <CardContent className="p-6 flex flex-col items-center">
+              <Skeleton className="h-32 w-32 rounded-full mb-4" />
+              <Skeleton className="h-8 w-3/4 mb-2" />
+              <Skeleton className="h-5 w-1/2 mb-2" />
+              <Skeleton className="h-4 w-1/3" />
+            </CardContent>
+          </Card>
+          <Card className="md:col-span-2">
+            <CardHeader>
+              <Skeleton className="h-6 w-1/3 mb-2" />
+              <Skeleton className="h-4 w-1/2" />
+            </CardHeader>
+            <CardContent className="p-6 space-y-4">
+              {[1, 2, 3, 4].map(i => (
+                <div key={i}>
+                  <Skeleton className="h-4 w-24 mb-1" />
+                  <Skeleton className="h-5 w-full" />
+                </div>
+              ))}
+            </CardContent>
+          </Card>
         </div>
       </div>
     );

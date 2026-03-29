@@ -155,7 +155,9 @@ const MemberModal: React.FC<MemberModalProps> = ({ isOpen, onClose, member, setS
             <ImageUrlInput value={memberImage} onChange={setMemberImage} label="Image URL" placeholder="https://example.com/image.jpg" />
 
             <Input label="Name" value={memberName} onChange={setMemberName} placeholder="John Doe" required />
-            <Input label="Designation" value={memberDesignation} onChange={setMemberDesignation} placeholder="Professor" required />
+            {(memberType === "faculty" || memberType === "advisory") && (
+              <Input label="Designation" value={memberDesignation} onChange={setMemberDesignation} placeholder="Professor" required />
+            )}
             <Input label="LinkedIn Profile URL" value={memberLinkedin} onChange={setMemberLinkedin} placeholder="https://linkedin.com/in/johndoe" />
 
             {/* Display Order */}

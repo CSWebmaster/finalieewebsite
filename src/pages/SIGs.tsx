@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { collection, getDocs, query, orderBy } from "firebase/firestore";
 import { db } from "../firebase";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export interface SIGItem {
   id: string;
@@ -167,8 +168,27 @@ export default function SIGs() {
 
   if (loading) {
     return (
-      <div className="relative w-full h-screen flex items-center justify-center bg-background">
-        <p className="text-muted-foreground animate-pulse">Loading SIGs...</p>
+      <div className="relative w-full h-screen flex flex-col items-center justify-center bg-background px-4">
+        <div className="absolute top-6 left-6 z-50">
+          <Skeleton className="h-10 w-32 rounded-full" />
+        </div>
+        <div className="relative z-10 w-[90vw] max-w-5xl h-[65vh] max-h-[calc(100vh-280px)] min-h-[400px] flex flex-col md:flex-row bg-card rounded-3xl overflow-hidden border border-border/50 shadow-sm">
+           <Skeleton className="w-full md:w-[55%] h-1/2 md:h-full rounded-none" />
+           <div className="w-full md:w-[45%] h-1/2 md:h-full p-6 md:p-12 flex flex-col justify-center space-y-6 bg-card/50">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-10 w-[80%]" />
+              <div className="space-y-3">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-[90%]" />
+                <Skeleton className="h-4 w-[60%]" />
+              </div>
+           </div>
+        </div>
+        <div className="flex flex-col items-center justify-center gap-4 mt-8">
+          <Skeleton className="h-12 w-40 rounded-full" />
+          <Skeleton className="h-4 w-32" />
+        </div>
       </div>
     );
   }

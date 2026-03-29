@@ -9,12 +9,14 @@ import { Button } from "@/components/ui/button";
 import { BLOG_CATEGORIES, BlogCategory } from "@/types/blog";
 
 const CATEGORY_COLORS: Record<string, string> = {
+  blog: "bg-orange-100 text-orange-700 border-orange-200",
   research: "bg-purple-100 text-purple-700 border-purple-200",
   article: "bg-blue-100 text-blue-700 border-blue-200",
   project: "bg-green-100 text-green-700 border-green-200",
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
+  blog: "Blog",
   research: "Research Paper",
   article: "Article",
   project: "Project Showcase",
@@ -52,18 +54,21 @@ export default function BlogList() {
       setLoading(true);
       try {
         const blogsRef = collection(db, "blogs");
-        let q;
-        if (activeCategory && activeCategory !== "all") {
-          q = query(blogsRef, where("category", "==", activeCategory), orderBy("created_at", "desc"), limit(50));
-        } else {
-          q = query(blogsRef, orderBy("created_at", "desc"), limit(50));
-        }
+        // Remove `where` query to bypass require composite index. 
+        // We will fetch all and filter in JavaScript.
+        const q = query(blogsRef, orderBy("created_at", "desc"));
         const snapshot = await getDocs(q);
-        const data = snapshot.docs.map((doc) => ({
+        
+        let data = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         })) as Blog[];
         
+        // Filter by category locally
+        if (activeCategory && activeCategory !== "all") {
+          data = data.filter(blog => blog.category === activeCategory);
+        }
+
         // Filter for approved blogs only. Old blogs without a status default to approved.
         const approvedData = data.filter(blog => !blog.status || blog.status === "approved");
         setBlogs(approvedData);
@@ -177,7 +182,7 @@ export default function BlogList() {
                 const firstImage = getFirstImage(blog);
                 const authorName = getAuthorName(blog);
                 const description = blog.description || blog.content || "";
-                const cat = blog.category || "article";
+                const cat = blog.category || "blog";
 
                 return (
                   <Link

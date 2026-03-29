@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { TypingAnimation } from "@/components/TypingAnimation";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface NewsletterItem {
   id: string;
@@ -28,9 +29,15 @@ export default function Newsletter() {
     const fetchNewsletters = async () => {
       try {
         const awardsRef = collection(db, "awards");
-        const q = query(awardsRef, where("type", "==", "newsletter"), orderBy("year", "desc"));
+        const q = query(awardsRef, where("type", "==", "newsletter"));
         const snap = await getDocs(q);
         const data = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as NewsletterItem[];
+        // Sort client-side to avoid composite index requirement
+        data.sort((a, b) => {
+          const yearA = parseInt(a.year) || 0;
+          const yearB = parseInt(b.year) || 0;
+          return yearB - yearA;
+        });
         setItems(data);
       } catch (err) {
         console.error("Error fetching newsletters:", err);
@@ -83,8 +90,20 @@ export default function Newsletter() {
           {/* Loading */}
           {loading && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-72 rounded-xl bg-muted/20 animate-pulse" />
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="glass rounded-lg overflow-hidden shadow-sm flex flex-col p-4 border border-border">
+                  <Skeleton className="w-full aspect-[4/3] rounded-md mb-4" />
+                  <div className="space-y-3 flex-1">
+                    <Skeleton className="h-6 w-[80%]" />
+                    <Skeleton className="h-4 w-[20%]" />
+                    <Skeleton className="h-4 w-[30%] rounded-full" />
+                    <div className="pt-2 space-y-2">
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-4 w-[90%]" />
+                    </div>
+                  </div>
+                  <Skeleton className="h-10 w-24 rounded-md mt-6" />
+                </div>
               ))}
             </div>
           )}

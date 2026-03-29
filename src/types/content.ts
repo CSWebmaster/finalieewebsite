@@ -20,6 +20,7 @@ export type Award = {
     imageUrl: string;
     winners: string; // Could be a list or comma-separated string based on your data structure
     location: string;
+    recipient?: string;
   };
 
 export interface TeamMember {

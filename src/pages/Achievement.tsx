@@ -9,16 +9,18 @@ import { Button } from "@/components/ui/button";
 import { Medal, Globe, GraduationCap, Calendar, User, Trophy, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { TypingAnimation } from "@/components/TypingAnimation";
+import { Skeleton } from "@/components/ui/skeleton";
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 
 interface FirestoreAward {
     id: string;
     year: string;
-    type: "student" | "branch";
+    type: "student" | "branch" | "newsletter" | string;
     title: string;
     image: string;
     description: string;
+    createdAt?: any;
 }
 
 type Tab = "student" | "awards" | "branch";
@@ -120,20 +122,31 @@ export default function Achievement() {
     // Firebase awards
     const [awards, setAwards] = useState<FirestoreAward[]>([]);
     const [searchTerm, setSearchTerm] = useState("");
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchAwards = async () => {
+            setLoading(true);
             try {
                 const awardsRef = collection(db, "awards");
-                const q = query(awardsRef, orderBy("createdAt", "desc"));
-                const snapshot = await getDocs(q);
+                const snapshot = await getDocs(awardsRef);
                 const data: FirestoreAward[] = snapshot.docs.map((doc) => ({
                     id: doc.id,
                     ...doc.data(),
                 })) as FirestoreAward[];
+                
+                // Sort client-side to avoid index requirements
+                data.sort((a: any, b: any) => {
+                    const timeA = a.createdAt?.toMillis?.() || 0;
+                    const timeB = b.createdAt?.toMillis?.() || 0;
+                    return timeB - timeA;
+                });
+                
                 setAwards(data);
             } catch {
                 // silently fail — page still shows mock data for other tabs
+            } finally {
+                setLoading(false);
             }
         };
         fetchAwards();
@@ -151,8 +164,9 @@ export default function Achievement() {
 
     const filteredAwards = awards.filter(
         (a) =>
-            a.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            a.description.toLowerCase().includes(searchTerm.toLowerCase())
+            a.type !== "newsletter" && 
+            (a.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            a.description.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
     return (
@@ -290,7 +304,22 @@ export default function Achievement() {
                             </p>
                         </div>
 
-                        {filteredAwards.length === 0 ? (
+                        {loading ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {[1, 2, 3, 4, 5, 6].map((i) => (
+                                    <div key={i} className="flex flex-col space-y-3 glass p-4 rounded-xl">
+                                        <Skeleton className="h-48 w-full rounded-xl" />
+                                        <div className="space-y-4 pt-4">
+                                            <Skeleton className="h-6 w-[250px]" />
+                                            <Skeleton className="h-4 w-16" />
+                                            <Skeleton className="h-4 w-full" />
+                                            <Skeleton className="h-4 w-4/5" />
+                                            <Skeleton className="h-10 w-24 mt-4" />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : filteredAwards.length === 0 ? (
                             <div className="text-center py-24 text-muted-foreground">
                                 <Trophy className="h-12 w-12 mx-auto mb-4 opacity-30" />
                                 <p className="text-lg font-medium">No awards found</p>

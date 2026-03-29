@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { BLOG_CATEGORIES } from "@/types/blog";
 
 const CATEGORY_COLORS: Record<string, string> = {
+  blog: "bg-orange-100 text-orange-700",
   research: "bg-purple-100 text-purple-700",
   article: "bg-blue-100 text-blue-700",
   project: "bg-green-100 text-green-700",

@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { TypingAnimation } from "@/components/TypingAnimation";
 import { db } from "@/firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const YEARS = Array.from({ length: 10 }, (_, i) => 2017 + i); // [2017 … 2026]
 
@@ -28,36 +29,52 @@ export default function TeamExecutive() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [executiveMembers, setExecutiveMembers] = useState<Record<string, any[]>>({});
+  const [loading, setLoading] = useState(true);
 
   // ── fetch members whenever selectedYear changes ──────────────────────────
   useEffect(() => {
     async function fetchExecutiveMembers() {
-      const membersRef = collection(db, "members");
-      const q = query(
-        membersRef,
-        where("type", "==", "executive"),
-        where("year", "==", selectedYear)
-      );
-      const snapshot = await getDocs(q);
+      setLoading(true);
+      try {
+        const membersRef = collection(db, "members");
+        // Removing `where("year", "==", selectedYear)` from query to bypass Firebase composite index
+        const q = query(
+          membersRef,
+          where("type", "==", "executive")
+        );
+        const snapshot = await getDocs(q);
 
-      const grouped: Record<string, any[]> = {
-        SB: [],
-        WIE: [],
-        SPS: [],
-        CS: [],
-        SIGHT: [],
-      };
+        const grouped: Record<string, any[]> = {
+          SB: [],
+          WIE: [],
+          SPS: [],
+          CS: [],
+          SIGHT: [],
+        };
 
-      snapshot.forEach((doc) => {
-        const data = doc.data();
-        let pos = data.position;
-        if (pos?.toLowerCase() === "vice chairperson") pos = "Vice-Chairperson";
-        if (grouped[data.society]) {
-          grouped[data.society].push({ ...data, position: pos, id: doc.id });
-        }
-      });
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          // Filter by year client side
+          if (Number(data.year) !== Number(selectedYear)) return;
 
-      setExecutiveMembers(grouped);
+          let pos = data.position;
+          if (pos?.toLowerCase() === "vice chairperson") pos = "Vice-Chairperson";
+          if (grouped[data.society]) {
+            grouped[data.society].push({ ...data, position: pos, id: doc.id });
+          }
+        });
+
+        // Ensure members are sorted by displayOrder before putting into the group
+        Object.keys(grouped).forEach(key => {
+           grouped[key].sort((a, b) => (a.displayOrder ?? 999) - (b.displayOrder ?? 999));
+        });
+
+        setExecutiveMembers(grouped);
+      } catch (error) {
+        console.error("Error fetching executive members:", error);
+      } finally {
+        setLoading(false);
+      }
     }
 
     fetchExecutiveMembers();
@@ -189,64 +206,88 @@ export default function TeamExecutive() {
           </div>
 
           {/* Member grids */}
-          {Object.entries(SOCIETY_TITLES).map(([societyKey, title]) => {
-            const members = filterMembers(executiveMembers[societyKey] || []);
-            if (members.length === 0) return null;
-            const sorted = sortMembers(members);
+          {loading ? (
+             <div className="space-y-16">
+               {[1, 2].map((group) => (
+                 <div key={group}>
+                   <Skeleton className="h-8 w-64 mb-6 text-primary dark:text-primary-dark" />
+                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+                     {[1, 2, 3, 4, 5].map((i) => (
+                       <div key={i} className="bg-white dark:bg-gray-900 glass rounded-xl shadow-md p-6 flex flex-col items-center text-center h-[340px]">
+                         <Skeleton className="w-32 h-32 rounded-lg mb-4" />
+                         <Skeleton className="h-6 w-3/4 mb-6" />
+                         <Skeleton className="h-4 w-full mb-2" />
+                         <Skeleton className="h-3 w-5/6" />
+                       </div>
+                     ))}
+                   </div>
+                 </div>
+               ))}
+             </div>
+          ) : Object.values(executiveMembers).every((arr) => arr.length === 0) ? (
+            <div className="text-center py-20 glass rounded-2xl border border-dashed border-border/50">
+              <p className="text-xl text-muted-foreground font-medium">Coming Soon</p>
+              <p className="text-sm text-muted-foreground mt-2">No executive members found for {selectedYear}.</p>
+            </div>
+          ) : (
+            Object.entries(SOCIETY_TITLES).map(([societyKey, title]) => {
+              const members = filterMembers(executiveMembers[societyKey] || []);
+              if (members.length === 0) return null;
+              const sorted = sortMembers(members);
 
-            return (
-              <div key={societyKey} className="mb-16">
-                <div className="text-2xl font-semibold mb-6 text-primary dark:text-primary-dark">
-                  {title}
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-                  {sorted.map((member) => (
-                    <div
-                      key={member.id}
-                      className="bg-white dark:bg-gray-900 glass rounded-xl overflow-hidden shadow-md hover:shadow-lg 
-                                 dark:hover:shadow-[0_0_10px_rgba(255,255,255,0.7)] hover:scale-[1.02]
-                                 transition-all duration-300 p-6 flex flex-col items-center text-center h-full cursor-pointer"
-                    >
-                      <img loading="lazy"
-                        src={member.image}
-                        alt={member.name}
-                        className="w-32 h-32 rounded-lg object-cover mb-4 border-2 border-muted dark:border-gray-700"
-                      />
-                      <div className="flex items-center justify-center mb-2">
-                        <h3 className="font-semibold text-xl text-gray-900 dark:text-white">
-                          {member.name}
-                        </h3>
-                        {member.linkedin && (
-                          <a
-                            href={member.linkedin}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="ml-2 text-primary hover:text-primary/80"
-                          >
-                            <Linkedin className="h-5 w-5" />
-                          </a>
-                        )}
-                      </div>
-                      <div className="flex-grow">
-                        <p className="text-sm mb-1 text-gray-700 dark:text-gray-300">
-                          {member.position}
+              return (
+                <div key={societyKey} className="mb-16">
+                  <div className="text-2xl font-semibold mb-6 text-primary dark:text-primary-dark">
+                    {title}
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+                    {sorted.map((member) => (
+                      <div
+                        key={member.id}
+                        className="bg-white dark:bg-gray-900 glass rounded-xl overflow-hidden shadow-md hover:shadow-lg 
+                                   dark:hover:shadow-[0_0_10px_rgba(255,255,255,0.7)] hover:scale-[1.02]
+                                   transition-all duration-300 p-6 flex flex-col items-center text-center h-full cursor-pointer relative"
+                      >
+                        <img loading="lazy"
+                          src={member.image}
+                          alt={member.name}
+                          className="w-32 h-32 rounded-lg object-cover mb-4 border-2 border-muted dark:border-gray-700"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.onerror = null;
+                            target.src = "https://via.placeholder.com/300x300?text=No+Image";
+                          }}
+                        />
+                        <div className="flex flex-col items-center justify-center mb-2 min-h-[56px] w-full px-2">
+                          <h3 className="font-semibold text-xl text-gray-900 dark:text-white line-clamp-2">
+                            {member.name}
+                          </h3>
+                        </div>
+                        <div className="flex-grow flex flex-col items-center justify-start w-full gap-3 mt-1">
+                          <p className="text-sm text-gray-700 dark:text-gray-300 text-center font-medium">
+                            {member.position}
+                          </p>
+                          {member.linkedin && (
+                            <a
+                              href={member.linkedin}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-colors"
+                              onClick={(e) => e.stopPropagation && e.stopPropagation()}
+                            >
+                              <Linkedin className="h-4 w-4" />
+                            </a>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground dark:text-gray-400 mt-2">
+                          {member.education || member.department}
                         </p>
                       </div>
-                      <p className="text-xs text-muted-foreground dark:text-gray-400 mt-2">
-                        {member.education || member.department}
-                      </p>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
-
-          {/* Empty state */}
-          {Object.values(executiveMembers).every((arr) => arr.length === 0) && (
-            <div className="text-center py-24 text-muted-foreground">
-              <p className="text-lg">No executive members found for {selectedYear}.</p>
-            </div>
+              );
+            })
           )}
         </div>
       </main>

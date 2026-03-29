@@ -267,15 +267,17 @@ const MemberPreviewList: React.FC<MemberPreviewListProps> = ({
 
               <div className="p-4">
                 <h3 className="font-semibold text-lg text-gray-800">{member.name}</h3>
-                <p className="text-gray-600">{member.designation}</p>
+                {(member.type === "faculty" || member.type === "advisory") && member.designation && (
+                  <p className="text-gray-600 font-medium mb-1">{member.designation}</p>
+                )}
                 {member.department && (
-                  <p className="text-sm text-gray-500">Dept: {member.department}</p>
+                  <p className="text-sm text-gray-500 mt-2"><span className="font-medium text-gray-700">Dept:</span> {member.department}</p>
                 )}
                 {member.position && (
-                  <p className="text-sm text-gray-500">Position: {member.position}</p>
+                  <p className="text-sm text-gray-500"><span className="font-medium text-gray-700">Position:</span> {member.position}</p>
                 )}
                 {member.education && (
-                  <p className="text-sm text-gray-500">Education: {member.education}</p>
+                  <p className="text-sm text-gray-500"><span className="font-medium text-gray-700">Education:</span> {member.education}</p>
                 )}
 
                 <div className="flex justify-between items-center mt-4">
@@ -407,15 +409,17 @@ const MemberPreviewList: React.FC<MemberPreviewListProps> = ({
                 </Avatar>
                 <div>
                   <h2 className="text-2xl font-bold text-gray-900">{selectedMember.name}</h2>
-                  <p className="text-gray-600">{selectedMember.designation}</p>
+                  {(selectedMember.type === "faculty" || selectedMember.type === "advisory") && selectedMember.designation && (
+                    <p className="text-gray-600 font-medium mb-2">{selectedMember.designation}</p>
+                  )}
                   {selectedMember.department && (
-                    <p className="text-sm text-gray-500">Department: {selectedMember.department}</p>
+                    <p className="text-sm text-gray-500 mt-2"><span className="font-medium text-gray-700">Dept:</span> {selectedMember.department}</p>
                   )}
                   {selectedMember.position && (
-                    <p className="text-sm text-gray-500">Position: {selectedMember.position}</p>
+                    <p className="text-sm text-gray-500"><span className="font-medium text-gray-700">Position:</span> {selectedMember.position}</p>
                   )}
                   {selectedMember.education && (
-                    <p className="text-sm text-gray-500">Education: {selectedMember.education}</p>
+                    <p className="text-sm text-gray-500"><span className="font-medium text-gray-700">Education:</span> {selectedMember.education}</p>
                   )}
                 </div>
               </div>

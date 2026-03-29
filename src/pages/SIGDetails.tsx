@@ -4,6 +4,7 @@ import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, Calendar, Users, Target, Lightbulb, Heart, Coins, Brain, Code, Mic, Book, Zap, TrendingUp, Puzzle, Rocket, Users2, GraduationCap, Award } from "lucide-react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function SIGDetails() {
   const { id } = useParams<{ id: string }>();
@@ -29,6 +30,7 @@ export default function SIGDetails() {
               mission: data.mission,
               activities: Array.isArray(data.activities) ? data.activities : [],
               benefits: Array.isArray(data.benefits) ? data.benefits : [],
+              images: Array.isArray(data.images) ? data.images : [],
               quote: data.quote,
               focusArea: data.focusArea,
               meetingFrequency: data.meetingFrequency,
@@ -49,8 +51,32 @@ export default function SIGDetails() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-background">
+        <section className="relative py-20 overflow-hidden">
+          <div className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center pt-8 border-b border-border/50 pb-12">
+            <Skeleton className="w-24 h-6 mx-auto mb-10" />
+            <Skeleton className="w-24 h-24 rounded-3xl mx-auto mb-8" />
+            <Skeleton className="w-3/4 max-w-2xl h-16 mx-auto mb-8" />
+            <div className="space-y-3">
+              <Skeleton className="w-1/2 max-w-xl h-5 mx-auto" />
+              <Skeleton className="w-2/5 max-w-lg h-5 mx-auto" />
+            </div>
+          </div>
+        </section>
+        <section className="py-16">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+              <div className="lg:col-span-2 space-y-8">
+                <Skeleton className="w-full h-48 rounded-2xl" />
+                <Skeleton className="w-full h-72 rounded-2xl" />
+              </div>
+              <div className="lg:col-span-1 space-y-8">
+                <Skeleton className="w-full h-40 rounded-2xl" />
+                <Skeleton className="w-full h-64 rounded-2xl" />
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
     );
   }
@@ -118,6 +144,32 @@ export default function SIGDetails() {
           </motion.div>
         </div>
       </section>
+
+      {/* Marquee Section */}
+      {sig.images && sig.images.length > 0 && (
+        <section className="py-8 bg-black/5 dark:bg-white/5 border-y border-border overflow-hidden">
+          <div className="relative flex max-w-7xl mx-auto w-full group">
+            <motion.div
+              className="flex whitespace-nowrap"
+              animate={{ x: [0, -1000] }}
+              transition={{
+                repeat: Infinity,
+                ease: "linear",
+                duration: 20,
+              }}
+            >
+              {[...sig.images, ...sig.images, ...sig.images].map((imgUrl: string, index: number) => (
+                <img 
+                  key={index} 
+                  src={imgUrl} 
+                  className="h-48 md:h-64 object-cover mx-4 rounded-xl border border-border shadow-md" 
+                  alt={`SIG Image ${index}`} 
+                />
+              ))}
+            </motion.div>
+          </div>
+        </section>
+      )}
 
       {/* Main Content */}
       <section className="py-16">

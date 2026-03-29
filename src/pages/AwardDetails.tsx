@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { CalendarIcon, TrophyIcon, ArrowLeft } from "lucide-react";
 import { db } from "../firebase";
 import { doc, getDoc } from "firebase/firestore";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const AwardDetails = () => {
   const { id } = useParams();
@@ -103,12 +104,26 @@ const AwardDetails = () => {
 
   if (loading) {
     return (
-      <div className={`min-h-screen flex items-center justify-center ${isDark ? 'bg-gray-900' : 'bg-blue-50'}`}>
-        <div className="flex items-center gap-2">
-          <div className="animate-spin">
-            <TrophyIcon className={`h-5 w-5 ${isDark ? 'text-blue-300' : 'text-blue-600'}`} />
+      <div className={`min-h-screen ${isDark ? 'bg-gray-900' : 'bg-blue-50'}`}>
+        <div className="max-w-4xl mx-auto pt-8 px-4 pb-16">
+          <Skeleton className="h-10 w-24 mb-6" />
+          <div className="w-full mb-8">
+            <Skeleton className="h-6 w-32 mb-2" />
+            <div className="flex justify-center">
+              <Skeleton className="w-full max-w-md h-64 rounded-lg" />
+            </div>
           </div>
-          <p className={isDark ? 'text-gray-200' : 'text-black'}>Loading award details...</p>
+          <Skeleton className="h-10 w-3/4 mb-4" />
+          <div className="flex gap-4 mb-6">
+            <Skeleton className="h-6 w-32" />
+            <Skeleton className="h-6 w-48" />
+          </div>
+          <div className="space-y-4">
+            <Skeleton className="h-8 w-48 mb-4 border-none" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-5/6" />
+          </div>
         </div>
       </div>
     );

@@ -5,6 +5,7 @@ import PageLayout from "@/components/PageLayout";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { TypingAnimation } from "@/components/TypingAnimation";
+import { Skeleton } from "@/components/ui/skeleton";
 import { collection, getDocs, query, orderBy, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase";
 
@@ -214,7 +215,7 @@ export default function Members() {
 
   useEffect(() => {
     const unsubscribe = onSnapshot(
-      query(collection(db, "members"), orderBy("enrolledYear", "desc")),
+      collection(db, "members"),
       (snapshot) => {
         const membersData = snapshot.docs.map(doc => ({
           id: doc.id,
@@ -368,9 +369,26 @@ export default function Members() {
           </div>
 
           {loading ? (
-            <div className="flex justify-center items-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-              <span className="ml-3 text-muted-foreground">Loading members...</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 py-8">
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className="glass rounded-lg overflow-hidden shadow-sm p-6">
+                  <div className="flex items-start mb-4">
+                    <Skeleton className="w-16 h-16 rounded-full mr-4 flex-shrink-0" />
+                    <div className="flex-1 min-w-0 space-y-3 mt-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <Skeleton className="h-6 w-3/4" />
+                        <Skeleton className="h-4 w-4 rounded-full" />
+                      </div>
+                      <Skeleton className="h-5 w-16 rounded-full" />
+                    </div>
+                  </div>
+                  <div className="space-y-3 pt-2 text-sm">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-5/6" />
+                    <Skeleton className="h-4 w-1/2" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : (
             <>
