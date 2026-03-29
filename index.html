@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IEEE SOU SB</title>
+    <link rel="shortcut icon" href="./Vector.ico" type="image/x-icon" />
+    <link rel="shortcut icon" href="https://in3700.wordpress.com/wp-content/uploads/2025/09/vector.png" type="image/x-icon">
+    
+    <!-- Preload Critical Assets -->
+    <link rel="preload" as="image" href="http://ieee.socet.edu.in/wp-content/uploads/2025/09/N_Wedge-removebg-preview.png" />
+    <link rel="preload" as="image" href="https://ieee.socet.edu.in/wp-content/uploads/2021/01/cropped-SOU-IEEE-SB-Header.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap">
+    
+    <!-- Handle SPA routing for direct URL access -->
+    <script type="text/javascript">
+      // Single Page Apps for GitHub/Netlify Pages
+      // MIT License
+      // This script checks to see if a redirect is present in the query string,
+      // otherwise it takes care of routing for direct URL access
+      (function(l) {
+        if (l.search[1] === '/' ) {
+          var decoded = l.search.slice(1).split('&').map(function(s) { 
+            return s.replace(/~and~/g, '&')
+          }).join('?');
+          window.history.replaceState(null, null,
+              l.pathname.slice(0, -1) + decoded + l.hash
+          );
+        }
+      }(window.location))
+    </script>
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <!-- IMPORTANT: DO NOT REMOVE THIS SCRIPT TAG OR THIS VERY COMMENT! -->
+    <!-- Comment out gptengineer.js for local development if it causes white page issues -->
+    <!-- <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script> -->
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -1,0 +1,956 @@
+/* ============================================================
+   App.css — Master Stylesheet  |  IEEE SOU SB Website
+   All colors, animations, hover states, transitions
+   extracted from TSX files and defined here as named classes.
+   ============================================================ */
+
+/* ============================================================
+   SECTION 1 — CSS CUSTOM PROPERTIES (Color Tokens)
+   Source: FAQ.tsx, Bylaws.tsx (used #00629B, #60B4E8 inline)
+   ============================================================ */
+:root {
+  --ieee-blue: #3b82f6;
+  --ieee-blue-light: #93c5fd;
+  --ieee-blue-tint: rgba(59, 130, 246, 0.10);
+  --ieee-blue-muted: rgba(59, 130, 246, 0.05);
+  --ieee-blue-border: rgba(59, 130, 246, 0.20);
+
+  --wie-purple: #8b5cf6;
+  --wie-purple-border: rgba(139, 92, 246, 0.15);
+  --wie-purple-hover: rgba(139, 92, 246, 0.45);
+  --wie-purple-tint: rgba(139, 92, 246, 0.10);
+
+  --sps-green: #22c55e;
+  --sps-green-border: rgba(34, 197, 94, 0.15);
+  --sps-green-hover: rgba(34, 197, 94, 0.45);
+  --sps-green-tint: rgba(34, 197, 94, 0.10);
+
+  --cs-yellow: #eab308;
+  --cs-yellow-border: rgba(234, 179, 8, 0.15);
+  --cs-yellow-hover: rgba(234, 179, 8, 0.45);
+  --cs-yellow-tint: rgba(234, 179, 8, 0.10);
+
+  --sight-red: #ff0000;
+  --sight-red-border: rgba(255, 27, 27, 0.942);
+  --sight-red-hover: rgba(255, 9, 9, 0.962);
+  --sight-red-tint: rgba(209, 23, 23, 0.875);
+
+  --navbar-height: 7rem;
+}
+
+/* ============================================================
+   SECTION 2 — ROOT / BASE  (original App.css)
+   ============================================================ */
+#root {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0;
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+/* ============================================================
+   SECTION 3 — LOGO  (original App.css)
+   ============================================================ */
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@media (prefers-reduced-motion:no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+/* ============================================================
+   SECTION 4 — KEYFRAME ANIMATIONS
+   ============================================================ */
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ============================================================
+   IEEE LOGO GLOW WAVE ANIMATION (Task 4)
+   Subtle gradient wave glow behind IEEE logo for About pages.
+   Colors follow IEEE theme: blue (main), yellow/orange (CS),
+   purple (WIE), green (SPS), blue (SIGHT).
+   ============================================================ */
+@keyframes ieee-glow-wave {
+  0% {
+    opacity: 0.35;
+    transform: scale(1) translateY(0px);
+    filter: blur(38px);
+  }
+
+  30% {
+    opacity: 0.55;
+    transform: scale(1.06) translateY(-10px);
+    filter: blur(44px);
+  }
+
+  60% {
+    opacity: 0.38;
+    transform: scale(0.97) translateY(6px);
+    filter: blur(36px);
+  }
+
+  100% {
+    opacity: 0.35;
+    transform: scale(1) translateY(0px);
+    filter: blur(38px);
+  }
+}
+
+@keyframes ieee-glow-beam {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-30%) rotate(-15deg) scaleX(0.6);
+  }
+
+  25% {
+    opacity: 0.18;
+    transform: translateX(-50%) translateY(-10%) rotate(-10deg) scaleX(1);
+  }
+
+  55% {
+    opacity: 0.12;
+    transform: translateX(-50%) translateY(5%) rotate(5deg) scaleX(0.9);
+  }
+
+  80% {
+    opacity: 0.20;
+    transform: translateX(-50%) translateY(-5%) rotate(-8deg) scaleX(1.05);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-30%) rotate(-15deg) scaleX(0.6);
+  }
+}
+
+/* Base glow wrapper — uniform fixed display box for all logos */
+.ieee-logo-glow {
+  display: block;
+  width: 220px;
+  height: 80px;
+  overflow: hidden;
+  flex-shrink: 0;
+  margin: 0 auto;
+}
+
+/* No glow blob */
+.ieee-logo-glow::before {
+  content: none !important;
+}
+
+/* No beam sweep */
+.ieee-logo-glow::after {
+  content: none !important;
+}
+
+/* Force all logos to fit within the box — !important overrides any inline Tailwind */
+.ieee-logo-glow img {
+  max-width: 220px !important;
+  max-height: 80px !important;
+  width: auto !important;
+  height: auto !important;
+  object-fit: contain !important;
+  display: block !important;
+  margin: 0 auto !important;
+}
+
+/* Color variants */
+.ieee-logo-glow--blue {
+  --glow-color: rgba(59, 130, 246, 0.50);
+  --beam-color: rgba(147, 197, 253, 0.22);
+}
+
+.ieee-logo-glow--yellow {
+  --glow-color: rgba(234, 179, 8, 0.45);
+  --beam-color: rgba(253, 224, 71, 0.25);
+}
+
+.ieee-logo-glow--purple {
+  --glow-color: rgba(139, 92, 246, 0.45);
+  --beam-color: rgba(196, 181, 253, 0.22);
+}
+
+.ieee-logo-glow--green {
+  --glow-color: rgba(74, 222, 128, 0.50);
+  --beam-color: rgba(187, 247, 208, 0.25);
+}
+
+.ieee-logo-glow--red {
+  --glow-color: rgba(239, 68, 68, 0.45);
+  --beam-color: rgba(252, 165, 165, 0.22);
+}
+
+/* SIGHT — reddish brown */
+.ieee-logo-glow--brown {
+  --glow-color: rgba(255, 3, 54, 0.95);
+  --beam-color: rgba(238, 14, 48, 0.943);
+}
+
+.ieee-logo-glow--orange {
+  --glow-color: rgba(249, 115, 22, 0.50);
+  --beam-color: rgba(253, 186, 116, 0.25);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Source: IEEE.tsx, all sub-branch pages */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Source: all sub-branch pages — cardMotion entry */
+@keyframes cardReveal {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+    filter: blur(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+/* Source: typewriter cursor */
+@keyframes blink {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
+}
+
+/* ============================================================
+   SECTION 5 — ANIMATION UTILITY CLASSES
+   Source: IEEE.tsx, IEEESOUSSB.tsx, IEEESOUSPSSBC.tsx,
+           IEEESOUSSIGHTSBG.tsx, IEEEOUSSBWIE.tsx
+   ============================================================ */
+.animated {
+  animation-duration: 0.7s;
+  animation-fill-mode: both;
+}
+
+.fade-in {
+  animation-name: fadeIn;
+}
+
+/* Replaces Tailwind animate-fade-in-up */
+.animate-fade-in-up {
+  animation: fadeInUp 0.85s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+.animation-delay-300 {
+  animation-delay: 300ms;
+}
+
+.animation-delay-500 {
+  animation-delay: 500ms;
+}
+
+.animation-delay-700 {
+  animation-delay: 700ms;
+}
+
+.animation-delay-900 {
+  animation-delay: 900ms;
+}
+
+.animation-delay-1100 {
+  animation-delay: 1100ms;
+}
+
+.animation-delay-1300 {
+  animation-delay: 1300ms;
+}
+
+.animation-delay-1500 {
+  animation-delay: 1500ms;
+}
+
+/* ============================================================
+   SECTION 6 — SCROLL REVEAL SYSTEM
+   Source: FAQ.tsx, Bylaws.tsx, Contact.tsx, Join.tsx
+   ============================================================ */
+.reveal {
+  opacity: 0;
+  transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1), transform 1s cubic-bezier(0.4, 0, 0.2, 1), filter 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.reveal.revealed {
+  opacity: 1 !important;
+  transform: none !important;
+  filter: none !important;
+}
+
+.reveal.fade-up {
+  transform: translateY(20px);
+}
+
+.reveal.fade-right {
+  transform: translateX(-20px);
+}
+
+.reveal.fade-left {
+  transform: translateX(20px);
+}
+
+.reveal.zoom-fade {
+  transform: scale(0.97) translateY(10px);
+  filter: blur(1px);
+}
+
+.reveal.delay-1 {
+  transition-delay: 0.10s;
+}
+
+.reveal.delay-2 {
+  transition-delay: 0.20s;
+}
+
+.reveal.delay-3 {
+  transition-delay: 0.30s;
+}
+
+.reveal.delay-4 {
+  transition-delay: 0.40s;
+}
+
+.reveal.delay-5 {
+  transition-delay: 0.50s;
+}
+
+/* ============================================================
+   SECTION 7 — HEADING DECORATIVE LINE
+   Source: FAQ.tsx, Bylaws.tsx, Contact.tsx, Join.tsx
+   ============================================================ */
+.heading-line {
+  height: 3px;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, var(--ieee-blue) 0%, var(--ieee-blue-light) 100%);
+  margin-top: 0.75rem;
+}
+
+/* ============================================================
+   SECTION 8 — IEEE BRAND BADGE & EYEBROW LABEL
+   Source: FAQ.tsx, Bylaws.tsx
+   ============================================================ */
+.ieee-badge {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  background-color: var(--ieee-blue-tint);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ieee-badge svg {
+  color: var(--ieee-blue);
+}
+
+.dark .ieee-badge svg {
+  color: var(--ieee-blue-light);
+}
+
+.ieee-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ieee-blue);
+}
+
+.dark .ieee-eyebrow {
+  color: var(--ieee-blue-light);
+}
+
+/* ============================================================
+   SECTION 9 — QUICK NAV PILLS
+   Source: FAQ.tsx, Bylaws.tsx
+   ============================================================ */
+.quick-nav-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.375rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-decoration: none;
+  background-color: rgb(241 245 249);
+  color: rgb(71 85 105);
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.quick-nav-pill:hover {
+  background-color: var(--ieee-blue);
+  color: #fff;
+}
+
+.dark .quick-nav-pill {
+  background-color: rgb(30 41 59);
+  color: rgb(203 213 225);
+}
+
+.dark .quick-nav-pill:hover {
+  background-color: #fff;
+  color: rgb(15 23 42);
+}
+
+/* ============================================================
+   SECTION 10 — INFO CARDS  (FAQ.tsx, Bylaws.tsx)
+   ============================================================ */
+.info-card {
+  border-radius: 0.75rem;
+  border: 1px solid rgb(241 245 249);
+  background-color: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.info-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px -8px rgba(0, 0, 0, 0.12);
+}
+
+.dark .info-card {
+  border-color: rgb(30 41 59);
+  background-color: rgba(15, 23, 42, 0.6);
+}
+
+.info-card-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid rgb(241 245 249);
+  background-color: rgb(248 250 252);
+}
+
+.dark .info-card-header {
+  border-bottom-color: rgb(30 41 59);
+  background-color: rgba(30, 41, 59, 0.4);
+}
+
+.info-card-number {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 9999px;
+  background-color: var(--ieee-blue);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.info-card-body {
+  padding: 1.5rem;
+}
+
+.info-card-body p {
+  font-size: 0.875rem;
+  color: rgb(71 85 105);
+  line-height: 1.7;
+}
+
+.dark .info-card-body p {
+  color: rgb(203 213 225);
+}
+
+/* Bylaws clause list */
+.clause-item {
+  display: flex;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+  color: rgb(71 85 105);
+  line-height: 1.7;
+}
+
+.dark .clause-item {
+  color: rgb(203 213 225);
+}
+
+.clause-number {
+  flex-shrink: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 9999px;
+  background-color: rgb(241 245 249);
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  margin-top: 0.125rem;
+}
+
+.dark .clause-number {
+  background-color: rgb(51 65 85);
+}
+
+/* ============================================================
+   SECTION 11 — INFO FOOTER NOTE  (FAQ.tsx, Bylaws.tsx bottom box)
+   ============================================================ */
+.info-footer-note {
+  margin-top: 1rem;
+  padding: 1.25rem;
+  border-radius: 0.75rem;
+  background-color: var(--ieee-blue-muted);
+  border: 1px solid var(--ieee-blue-border);
+  font-size: 0.875rem;
+  color: rgb(71 85 105);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.info-footer-note:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px -6px rgba(0, 0, 0, 0.10);
+}
+
+.dark .info-footer-note {
+  background-color: rgba(0, 98, 155, 0.10);
+  color: rgb(203 213 225);
+}
+
+.info-footer-note strong {
+  color: var(--ieee-blue);
+}
+
+.dark .info-footer-note strong {
+  color: var(--ieee-blue-light);
+}
+
+.info-footer-note a {
+  color: var(--ieee-blue);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.info-footer-note a:hover {
+  opacity: 0.8;
+}
+
+.dark .info-footer-note a {
+  color: var(--ieee-blue-light);
+}
+
+/* ============================================================
+   SECTION 12 — GLASS CARD  (all sub-branch pages)
+   Source: IEEESOUSSB.tsx, IEEESOUSPSSBC.tsx,
+           IEEESOUSSIGHTSBG.tsx, IEEEOUSSBWIE.tsx
+   ============================================================ */
+.glass-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1rem;
+  padding: 2rem;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid transparent;
+  box-shadow: 0 4px 24px -6px rgba(0, 0, 0, 0.08);
+  /* entry animation state */
+  opacity: 0;
+  transform: translateY(16px) scale(0.99);
+  filter: blur(2px);
+  transition: all 1s cubic-bezier(.4, 0, .2, 1);
+}
+
+.glass-card.is-visible {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+
+.glass-card:hover {
+  transform: translateY(-4px) !important;
+}
+
+/* Gradient overlay */
+.glass-card::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, var(--gc-from, transparent) 0%, transparent 50%, var(--gc-to, transparent) 100%);
+}
+
+/* Top-right ambient blob */
+.glass-card::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  top: -4rem;
+  right: -3rem;
+  width: 9rem;
+  height: 9rem;
+  border-radius: 9999px;
+  background-color: var(--gc-blob, transparent);
+  filter: blur(40px);
+}
+
+/* ---- Accent modifiers ---- */
+
+/* BLUE */
+.glass-card--blue {
+  border-color: var(--ieee-blue-border);
+  --gc-from: var(--ieee-blue-tint);
+  --gc-to: rgba(34, 211, 238, .10);
+  --gc-blob: rgba(59, 130, 246, .20);
+}
+
+.glass-card--blue:hover {
+  border-color: rgba(59, 130, 246, .45) !important;
+  box-shadow: 0 24px 50px -24px rgba(59, 130, 246, .45) !important;
+}
+
+/* GREEN (SPS) */
+.glass-card--green {
+  border-color: var(--sps-green-border);
+  --gc-from: var(--sps-green-tint);
+  --gc-to: rgba(52, 211, 153, .10);
+  --gc-blob: rgba(34, 197, 94, .20);
+}
+
+.glass-card--green:hover {
+  border-color: var(--sps-green-hover) !important;
+  box-shadow: 0 24px 50px -24px var(--sps-green-hover) !important;
+}
+
+/* PURPLE (WIE) */
+.glass-card--purple {
+  border-color: var(--wie-purple-border);
+  --gc-from: var(--wie-purple-tint);
+  --gc-to: rgba(196, 181, 253, .10);
+  --gc-blob: rgba(139, 92, 246, .18);
+}
+
+.glass-card--purple:hover {
+  border-color: var(--wie-purple-hover) !important;
+  box-shadow: 0 20px 40px -18px rgba(139, 92, 246, .25) !important;
+}
+
+/* RED (SIGHT FIXED) */
+.glass-card--red {
+  border-color: var(--sight-red-border);
+  --gc-from: var(--sight-red-tint);
+  --gc-to: rgba(255, 0, 0, 0.985);
+  --gc-blob: rgba(255, 0, 0, 0.853);
+}
+
+.glass-card--red:hover {
+  border-color: var(--sight-red-hover) !important;
+  box-shadow: 0 24px 50px -24px var(--sight-red-hover) !important;
+}
+
+/* YELLOW (CS NEW) */
+.glass-card--yellow {
+  border-color: var(--cs-yellow-border);
+  --gc-from: var(--cs-yellow-tint);
+  --gc-to: rgba(253, 224, 71, .10);
+  --gc-blob: rgba(234, 179, 8, .18);
+}
+
+.glass-card--yellow:hover {
+  border-color: var(--cs-yellow-hover) !important;
+  box-shadow: 0 20px 40px -18px rgba(234, 179, 8, .30) !important;
+}
+
+/* Stagger delays */
+.glass-card--delay-1 {
+  transition-delay: 120ms;
+}
+
+.glass-card--delay-2 {
+  transition-delay: 260ms;
+}
+
+.glass-card--delay-3 {
+  transition-delay: 400ms;
+}
+
+/* Inner content wrapper */
+.glass-card__content {
+  position: relative;
+  z-index: 10;
+}
+
+/* ============================================================
+   SECTION 13 — TYPEWRITER CURSOR
+   Source: IEEESOUSSB.tsx, IEEESOUSPSSBC.tsx,
+           IEEESOUSSIGHTSBG.tsx, IEEEOUSSBWIE.tsx
+   ============================================================ */
+.typewriter-wrap::after {
+  content: "|";
+  display: inline-block;
+  margin-left: 1px;
+  animation: blink 0.75s step-end infinite;
+  color: currentColor;
+  opacity: 0.7;
+}
+
+/* ============================================================
+   SECTION 14 — IEEE.tsx HISTORY SECTION
+   ============================================================ */
+.ieee-history-section {
+  margin-bottom: 3rem;
+  background-color: rgba(0, 0, 0, 0.03);
+  padding: 2rem;
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.08);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.ieee-history-section:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.12);
+}
+
+.ieee-history-section h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
+
+.ieee-accent-bar {
+  width: 4rem;
+  height: 4px;
+  border-radius: 9999px;
+  background-color: rgba(59, 130, 246, 0.80);
+  margin-bottom: 1.5rem;
+}
+
+.ieee-page-divider {
+  width: 6rem;
+  height: 6px;
+  border-radius: 9999px;
+  background-color: var(--ieee-blue);
+  margin: 0 auto 2rem;
+}
+
+/* ============================================================
+   SECTION 15 — CONTACT.tsx / JOIN.tsx FORM & INFO BOXES
+   ============================================================ */
+.form-card {
+  background-color: #fff;
+  border-radius: 0.5rem;
+  padding: 2rem;
+  box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.20);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.14);
+}
+
+.dark .form-card {
+  background-color: rgb(31 41 55);
+}
+
+.info-box {
+  background-color: #fff;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.20);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.info-box:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.14);
+}
+
+.dark .info-box {
+  background-color: rgb(31 41 55);
+}
+
+.join-card {
+  border-radius: 0.5rem;
+  padding: 2rem;
+  border: 1px solid rgb(229 231 235);
+  box-shadow: 0 4px 16px -4px rgba(0, 0, 0, 0.10);
+  background-color: #fff;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.join-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.14);
+}
+
+.dark .join-card {
+  border-color: rgb(55 65 81);
+  background-color: rgb(17 24 39);
+}
+
+/* ============================================================
+   SECTION 16 — SONNER TOAST OVERRIDES
+   Source: Contact.tsx, Join.tsx
+   ============================================================ */
+[data-sonner-toast] {
+  font-size: 1.05rem !important;
+  padding: 1.1rem 1.25rem !important;
+}
+
+/* ============================================================
+   SECTION 17 — RESPONSIVE FIXES  (original App.css)
+   ============================================================ */
+@media (max-width:640px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  h1 {
+    font-size: 1.75rem;
+  }
+
+  h2 {
+    font-size: 1.50rem;
+  }
+
+  /* Mobile navbar improvements */
+  .navbar-mobile-buttons {
+    gap: 0.5rem !important;
+  }
+
+  /* Mobile AI assistant improvements */
+  .ai-assistant-mobile {
+    bottom: 2rem !important;
+    right: 2rem !important;
+    width: calc(100vw - 4rem) !important;
+    max-width: 100vw !important;
+    height: 60vh !important;
+  }
+
+  /* Ensure mobile menu doesn't overflow */
+  .mobile-menu-panel {
+    width: 90vw !important;
+    max-width: 100vw !important;
+    right: 1rem !important;
+  }
+
+  /* Mobile floating button positioning */
+  .floating-button-mobile {
+    bottom: 2rem !important;
+    right: 2rem !important;
+  }
+}
+
+/* Universal responsive navbar styles */
+.navbar-responsive {
+  min-height: 3.5rem;
+  padding: 0.5rem 1rem;
+}
+
+.navbar-logo-responsive {
+  max-width: 120px;
+  height: auto;
+}
+
+.navbar-buttons-responsive {
+  gap: 0.5rem;
+}
+
+/* Ensure navbar works on all screen sizes */
+@media (max-width: 768px) {
+  .navbar-responsive {
+    padding: 0.75rem 1.5rem;
+  }
+
+  .navbar-logo-responsive {
+    max-width: 100px;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar-responsive {
+    padding: 0.5rem 1rem;
+  }
+
+  .navbar-logo-responsive {
+    max-width: 80px;
+  }
+
+  .navbar-buttons-responsive {
+    gap: 0.25rem;
+  }
+}
+
+/* Ensure theme button and menu button are always accessible */
+.navbar-theme-btn,
+.navbar-menu-btn {
+  min-width: 36px;
+  min-height: 36px;
+  padding: 8px;
+}
+
+/* Prevent logo overflow on very small screens */
+@media (max-width: 360px) {
+  .navbar-logo-responsive {
+    max-width: 70px;
+  }
+
+  .navbar-buttons-responsive {
+    gap: 0.125rem;
+  }
+}
