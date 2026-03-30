@@ -48,11 +48,23 @@ export default function Newsletter() {
     fetchNewsletters();
   }, []);
 
-  const filtered = items.filter(
-    (item) =>
-      item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filtered = items
+    .filter(
+      (item) =>
+        item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.description.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .sort((a, b) => (parseInt(b.year) || 0) - (parseInt(a.year) || 0));
+
+  // Group by year (descending)
+  const groupedByYear = filtered.reduce<Record<string, NewsletterItem[]>>((acc, item) => {
+    const year = item.year || "Unknown";
+    if (!acc[year]) acc[year] = [];
+    acc[year].push(item);
+    return acc;
+  }, {});
+
+  const sortedYears = Object.keys(groupedByYear).sort((a, b) => Number(b) - Number(a));
 
   const getFirstImage = (item: NewsletterItem) => {
     if (item.images?.length) return item.images[0];
@@ -125,53 +137,61 @@ export default function Newsletter() {
             </div>
           )}
 
-          {/* Grid */}
-          {!loading && filtered.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filtered.map((item) => {
-                const img = getFirstImage(item);
-                return (
-                  <div
-                    key={item.id}
-                    className="glass rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 border border-gray-200 dark:border-gray-700 flex flex-col"
-                  >
-                    {/* Image — fully visible, no crop */}
-                    <div className="relative bg-slate-50 dark:bg-slate-900 border-b border-gray-200 dark:border-gray-700 flex items-center justify-center overflow-hidden" style={{ aspectRatio: '4/3' }}>
-                      {img ? (
-                        <img
-                          loading="lazy"
-                          src={img}
-                          alt={item.title}
-                          className="absolute inset-0 w-full h-full object-contain p-2 transition-transform duration-300 hover:scale-105"
-                        />
-                      ) : (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <Award className="h-12 w-12 text-slate-300" />
-                        </div>
-                      )}
-                    </div>
+          {/* Year-grouped grid */}
+          {!loading && filtered.length > 0 && sortedYears.map((year) => (
+            <div key={year} className="mb-12">
+              {/* Year heading */}
+              <div className="flex items-center gap-4 mb-6">
+                <h2 className="text-2xl font-bold text-primary whitespace-nowrap">{year}</h2>
+                <div className="flex-1 h-px bg-border" />
+              </div>
 
-                    {/* Text content */}
-                    <div className="p-5 flex flex-col flex-1">
-                      <h3 className="text-xl font-bold mb-2 line-clamp-1">{item.title}</h3>
-                      <p className="text-sm text-muted-foreground mb-1">{item.year}</p>
-                      {item.newsletterType && (
-                        <span className="inline-block mb-3 text-xs font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 w-fit">
-                          {item.newsletterType.replace("_", " ")}
-                        </span>
-                      )}
-                      <p className="text-sm mb-4 line-clamp-2 flex-1">{item.description}</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {groupedByYear[year].map((item) => {
+                  const img = getFirstImage(item);
+                  return (
+                    <div
+                      key={item.id}
+                      className="glass rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 border border-gray-200 dark:border-gray-700 flex flex-col"
+                    >
+                      {/* Image — fully visible, no crop */}
+                      <div className="relative bg-slate-50 dark:bg-slate-900 border-b border-gray-200 dark:border-gray-700 flex items-center justify-center overflow-hidden" style={{ aspectRatio: '4/3' }}>
+                        {img ? (
+                          <img
+                            loading="lazy"
+                            src={img}
+                            alt={item.title}
+                            className="absolute inset-0 w-full h-full object-contain p-2 transition-transform duration-300 hover:scale-105"
+                          />
+                        ) : (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <Award className="h-12 w-12 text-slate-300" />
+                          </div>
+                        )}
+                      </div>
 
-                      {/* Button at bottom */}
-                      <Button size="sm" asChild className="mt-auto">
-                        <Link to={`/awarddetails/${item.id}`}>Read More</Link>
-                      </Button>
+                      {/* Text content */}
+                      <div className="p-5 flex flex-col flex-1">
+                        <h3 className="text-xl font-bold mb-2 line-clamp-1">{item.title}</h3>
+                        <p className="text-sm text-muted-foreground mb-1">{item.year}</p>
+                        {item.newsletterType && (
+                          <span className="inline-block mb-3 text-xs font-semibold uppercase tracking-wider px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 w-fit">
+                            {item.newsletterType.replace("_", " ")}
+                          </span>
+                        )}
+                        <p className="text-sm mb-4 line-clamp-2 flex-1">{item.description}</p>
+
+                        {/* Button at bottom */}
+                        <Button size="sm" asChild className="mt-auto">
+                          <Link to={`/awarddetails/${item.id}`}>Read More</Link>
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
-          )}
+          ))}
         </div>
       </main>
     </PageLayout>
