@@ -204,15 +204,12 @@ export default function JourneyDetails() {
           <h1 className="text-2xl md:text-3xl lg:text-4xl font-extrabold leading-tight tracking-tight text-card-foreground">
             {item.title}
           </h1>
-          <p className="text-sm md:text-base text-muted-foreground font-medium mt-2 max-w-3xl leading-relaxed">
-            {item.description}
-          </p>
         </div>
 
-        {/* ── MIDDLE: image slideshow (flex-grow) ── */}
-        <div className="flex-1 min-h-0 flex flex-col gap-4">
+        {/* ── MIDDLE: image slideshow & description ── */}
+        <div className="flex-col gap-4">
           {/* Slideshow container */}
-          <div className="relative rounded-2xl overflow-hidden border shadow-lg flex-1 min-h-0 bg-card">
+          <div className="relative rounded-2xl overflow-hidden border shadow-lg w-full h-[350px] sm:h-[450px] md:h-[500px] lg:h-[600px] bg-card mb-4 flex-shrink-0">
             
             <div 
               className="absolute inset-0 flex transition-transform duration-500 ease-in-out"
@@ -288,17 +285,15 @@ export default function JourneyDetails() {
           </div>
 
           {/* ── Description card ── */}
-          <div
-            className="flex-shrink-0 bg-card border rounded-xl px-5 py-4 shadow-sm transition-opacity duration-300 ease-in-out"
-          >
-            <span className="text-[10px] md:text-xs font-bold tracking-widest uppercase text-primary block mb-1.5 flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary inline-block"></span>
-              {slideIndex === 0 ? "Overview" : `Moment ${slideIndex}`}
-            </span>
-            <p className="text-muted-foreground text-xs md:text-sm font-medium leading-relaxed line-clamp-3">
-              {currentSlide.description}
-            </p>
-          </div>
+          {currentSlide.description && (
+            <div
+              className="flex-shrink-0 bg-card border rounded-2xl p-6 md:p-8 shadow-sm transition-opacity duration-300 ease-in-out mt-2"
+            >
+              <p className="text-foreground text-base md:text-lg font-medium leading-relaxed whitespace-pre-line">
+                {currentSlide.description}
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>
