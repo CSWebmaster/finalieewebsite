@@ -14,13 +14,21 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// Initialize Firebase defensively
+let app;
+try {
+  if (!firebaseConfig.apiKey) {
+    console.warn("Firebase configuration is missing or incomplete. Some features like Auth and Firestore will not work.");
+  }
+  app = initializeApp(firebaseConfig);
+} catch (error) {
+  console.error("Failed to initialize Firebase:", error);
+}
 
-// Export Firebase services
-export const auth = getAuth(app);
-export const db = getFirestore(app);
-export const analytics = typeof window !== "undefined" ? getAnalytics(app) : null;
+// Export Firebase services safely
+export const auth = app ? getAuth(app) : null as any;
+export const db = app ? getFirestore(app) : null as any;
+export const analytics = (app && typeof window !== "undefined" && firebaseConfig.measurementId) ? getAnalytics(app) : null;
 export const storage = null; // Placeholder if not currently used
 
 export default { auth, db, analytics, storage };

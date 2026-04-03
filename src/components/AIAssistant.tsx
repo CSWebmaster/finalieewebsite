@@ -85,7 +85,8 @@ export default function AIAssistant() {
 
   const fetchChatResponse = async (userInput: string) => {
     try {
-      const response = await fetch("http://localhost:3001/api/chat", {
+      const baseUrl = import.meta.env.VITE_AI_API_URL || "";
+      const response = await fetch(`${baseUrl}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: userInput })

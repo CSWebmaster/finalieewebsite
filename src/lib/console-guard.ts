@@ -31,8 +31,7 @@ export const configureBrowserConsole = () => {
     console.log = noop;
     console.info = noop;
     console.debug = noop;
-    console.warn = noop;
-    console.error = noop;
+    // We keep console.warn and console.error enabled to debug production crashes.
     return;
   }
 
