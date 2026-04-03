@@ -128,7 +128,7 @@ export default function SIGs() {
 
     return (
       <div
-        className="absolute w-[90vw] max-w-5xl transition-all duration-1000 ease-[cubic-bezier(0.25,1,0.5,1)] origin-center flex flex-col items-center"
+        className="absolute w-[90vw] max-w-5xl transition-all duration-1000 [transition-timing-function:cubic-bezier(0.25,1,0.5,1)] origin-center flex flex-col items-center"
         style={{ transform: `translateY(${translateY}px) scale(${scale})`, opacity, zIndex, pointerEvents: diff === 0 ? "auto" : "none" }}
       >
         <div className="relative group overflow-hidden rounded-3xl border border-white/10 dark:border-white/5 bg-card/40 backdrop-blur-2xl shadow-[0_30px_60px_rgba(0,0,0,0.12)] h-[65vh] max-h-[calc(100vh-280px)] min-h-[400px] w-full flex flex-col md:flex-row transition-all duration-500">
