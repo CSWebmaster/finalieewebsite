@@ -2,8 +2,10 @@ import React, { useRef, useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { collection, getDocs, query, orderBy } from "firebase/firestore";
 import { db } from "../firebase";
-import { Skeleton } from "@/components/ui/skeleton";
-import ImageLoader from "@/components/ImageLoader";
+import { useSmartLoader } from "@/hooks/useSmartLoader";
+import { SmartLoader } from "@/components/performance/SmartLoader";
+import { LazyImage } from "@/components/performance/LazyImage";
+import { ArrowLeft, ArrowRight, Info } from "lucide-react";
 
 export interface SIGItem {
   id: string;
@@ -36,10 +38,11 @@ function SIGsSectionBackground({ imageUrl }: { imageUrl?: string }) {
 export default function SIGs() {
   const [sigItems, setSigItems] = useState<SIGItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const { loaderType } = useSmartLoader(loading);
   const [currentIndex, setCurrentIndex] = useState(0);
   const navigateRouter = useNavigate();
   const lastScrollTime = useRef(0);
-  const scrollCooldown = 1200;
+  const scrollCooldown = 800; // Slightly reduced for better responsiveness
 
   // Fetch SIGs from Firestore
   useEffect(() => {
@@ -65,25 +68,29 @@ export default function SIGs() {
     const handleWheel = (e: WheelEvent) => {
       const now = Date.now();
       if (now - lastScrollTime.current < scrollCooldown) return;
-      if (Math.abs(e.deltaY) > 40) {
-        if (e.deltaY > 0) handleNext();
+      
+      // Use both deltaX and deltaY to trigger horizontal traversal
+      const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+      
+      if (Math.abs(delta) > 30) {
+        if (delta > 0) handleNext();
         else handlePrev();
         lastScrollTime.current = now;
       }
     };
 
-    let startY = 0;
-    const handleTouchStart = (e: TouchEvent) => { startY = e.touches[0].clientY; };
+    let startX = 0;
+    const handleTouchStart = (e: TouchEvent) => { startX = e.touches[0].clientX; };
     const handleTouchMove = (e: TouchEvent) => {
       const now = Date.now();
       if (now - lastScrollTime.current < scrollCooldown) return;
-      const currentY = e.touches[0].clientY;
-      const deltaY = startY - currentY;
-      if (Math.abs(deltaY) > 40) {
-        if (deltaY > 0) handleNext();
+      const currentX = e.touches[0].clientX;
+      const deltaX = startX - currentX;
+      if (Math.abs(deltaX) > 40) {
+        if (deltaX > 0) handleNext();
         else handlePrev();
         lastScrollTime.current = now;
-        startY = currentY;
+        startX = currentX;
       }
     };
 
@@ -110,55 +117,70 @@ export default function SIGs() {
     setCurrentIndex((prev) => Math.max(0, prev - 1));
   };
 
-  const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
-    e.currentTarget.src = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='600' viewBox='0 0 800 600'><defs><linearGradient id='grad' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' style='stop-color:%2300629B;stop-opacity:1'/><stop offset='100%' style='stop-color:%23004d7a;stop-opacity:1'/></linearGradient></defs><rect width='800' height='600' fill='url(%23grad)'/><circle cx='400' cy='300' r='150' fill='rgba(255,255,255,0.1)'/><text x='400' y='300' font-family='Arial' font-size='48' font-weight='bold' text-anchor='middle' fill='rgba(255,255,255,0.8)' dy='-10'>IEEE</text><text x='400' y='300' font-family='Arial' font-size='24' text-anchor='middle' fill='rgba(255,255,255,0.6)' dy='30'>SIG Image Not Available</text></svg>";
-  };
-
   const SIGCard = ({ item, index }: { item: SIGItem, index: number }) => {
     const diff = index - currentIndex;
 
-    let scale = 1, translateY = 0, opacity = 1, zIndex = 40;
+    // Redesigned for Horizontal transitions (Scroll Left/Right)
+    let scale = 1, translateX = 0, opacity = 1, zIndex = 40;
     if (diff < 0) {
-      scale = 1.1; translateY = -20; opacity = 0; zIndex = 30;
+      scale = 0.95; translateX = -40; opacity = 0; zIndex = 30;
     } else if (diff === 0) {
-      scale = 1; translateY = 0; opacity = 1; zIndex = 40;
+      scale = 1; translateX = 0; opacity = 1; zIndex = 40;
     } else {
-      scale = 0.9; translateY = 20; opacity = 0; zIndex = 20;
+      scale = 0.95; translateX = 40; opacity = 0; zIndex = 20;
     }
 
     return (
       <div
-        className="absolute w-[90vw] max-w-5xl transition-all duration-1000 [transition-timing-function:cubic-bezier(0.25,1,0.5,1)] origin-center flex flex-col items-center"
-        style={{ transform: `translateY(${translateY}px) scale(${scale})`, opacity, zIndex, pointerEvents: diff === 0 ? "auto" : "none" }}
+        className="absolute w-[95vw] max-w-5xl transition-all duration-700 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] origin-center flex flex-col items-center"
+        style={{ 
+          transform: `translateX(${translateX}%) scale(${scale})`, 
+          opacity, 
+          zIndex, 
+          pointerEvents: diff === 0 ? "auto" : "none",
+          visibility: Math.abs(diff) > 1 ? "hidden" : "visible" // Performance optimization: hide non-adjacent cards
+        }}
       >
-        <div className="relative group overflow-hidden rounded-3xl border border-white/10 dark:border-white/5 bg-card/40 backdrop-blur-2xl shadow-[0_30px_60px_rgba(0,0,0,0.12)] h-[65vh] max-h-[calc(100vh-280px)] min-h-[400px] w-full flex flex-col md:flex-row transition-all duration-500">
+        <div className="relative group overflow-hidden rounded-[2.5rem] border border-white/10 dark:border-white/5 bg-card/30 backdrop-blur-3xl shadow-[0_40px_100px_rgba(0,0,0,0.2)] h-[70vh] max-h-[calc(100vh-280px)] min-h-[450px] w-full flex flex-col md:flex-row transition-all duration-500 hover:shadow-[0_50px_120px_rgba(0,98,155,0.15)]">
           
-          {/* Subtle Live Ambient Sweep */}
+          {/* Ambient Sweep Animation */}
           <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
-            <div className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] animate-[spin_15s_linear_infinite] bg-[conic-gradient(from_0deg_at_50%_50%,rgba(0,0,0,0)_0%,rgba(0,98,155,0.06)_50%,rgba(0,0,0,0)_100%)] dark:bg-[conic-gradient(from_0deg_at_50%_50%,rgba(255,255,255,0)_0%,rgba(255,255,255,0.04)_50%,rgba(255,255,255,0)_100%)] mix-blend-plus-lighter pointer-events-none" />
+            <div className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] animate-[spin_20s_linear_infinite] bg-[conic-gradient(from_0deg_at_50%_50%,rgba(0,0,0,0)_0%,rgba(0,98,155,0.08)_50%,rgba(0,0,0,0)_100%)] dark:bg-[conic-gradient(from_0deg_at_50%_50%,rgba(255,255,255,0)_0%,rgba(255,255,255,0.05)_50%,rgba(255,255,255,0)_100%)] mix-blend-overlay pointer-events-none" />
           </div>
 
           {/* Image Canvas (Left) */}
-          <div className="relative z-10 w-full md:w-[55%] h-1/2 md:h-full flex items-center justify-center p-6 md:p-10 border-b md:border-b-0 md:border-r border-border/30 bg-black/[0.02] dark:bg-white/[0.02]">
-            <ImageLoader
+          <div className="relative z-10 w-full md:w-[60%] h-[40%] md:h-full flex items-center justify-center p-8 md:p-14 border-b md:border-b-0 md:border-r border-border/20 bg-black/[0.03] dark:bg-white/[0.03]">
+            <LazyImage
               src={item.imageUrl}
               alt={item.title}
               containerClassName="w-full h-full flex items-center justify-center"
-              className="w-full h-full object-contain filter drop-shadow-[0_15px_25px_rgba(0,0,0,0.2)] transition-transform duration-700 group-hover:scale-105"
+              className="w-full h-full object-contain filter drop-shadow-[0_20px_40px_rgba(0,0,0,0.3)] transition-all duration-700 group-hover:scale-105 group-hover:-rotate-1"
             />
           </div>
 
           {/* Details Column (Right) */}
-          <div className="relative z-10 w-full md:w-[45%] h-1/2 md:h-full p-6 md:p-12 flex flex-col justify-center bg-gradient-to-br from-card/80 to-transparent">
-            <div className={`transition-all duration-1000 delay-150 ease-out ${diff === 0 ? "opacity-100 translate-x-0" : "opacity-0 translate-x-8"}`}>
-              <div className="flex items-center gap-3 mb-5">
-                 <div className="h-1 w-8 bg-primary rounded-full transition-all duration-700 ease-out group-hover:w-16" />
-                 <span className="text-xs uppercase tracking-[0.2em] text-primary font-bold hidden sm:block">Featured SIG</span>
+          <div className="relative z-10 w-full md:w-[40%] h-[60%] md:h-full p-8 md:p-14 flex flex-col justify-center bg-gradient-to-br from-card/90 to-transparent">
+            <div className={`transition-all duration-1000 delay-200 ease-out ${diff === 0 ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"}`}>
+              <div className="flex items-center gap-4 mb-6">
+                 <div className="h-1 w-10 bg-[#00629B] rounded-full transition-all duration-700 ease-out group-hover:w-20" />
+                 <span className="text-[10px] uppercase tracking-[0.3em] text-[#00629B] font-black">SIG Spotlight</span>
               </div>
-              <h3 className="text-2xl md:text-3xl lg:text-4xl font-extrabold mb-4 leading-tight tracking-tight text-foreground">{item.title}</h3>
-              <p className="text-sm md:text-base text-muted-foreground leading-relaxed line-clamp-4 md:line-clamp-6">
+              <h3 className="text-3xl md:text-4xl lg:text-5xl font-black mb-6 leading-[1.1] tracking-tight text-foreground drop-shadow-sm">
+                {item.title}
+              </h3>
+              <p className="text-sm md:text-base lg:text-lg text-muted-foreground leading-relaxed line-clamp-5 md:line-clamp-none font-medium opacity-80 mb-8">
                 {item.details}
               </p>
+              
+              <Link
+                to={`/sigs/${item.id}`}
+                className="mt-4 flex items-center gap-3 text-[#00629B] font-bold group/link"
+              >
+                <div className="flex items-center justify-center w-10 h-10 rounded-full bg-[#00629B]/10 group-hover/link:bg-[#00629B] group-hover/link:text-white transition-all duration-300">
+                  <ArrowRight className="w-5 h-5" />
+                </div>
+                <span className="text-sm uppercase tracking-widest group-hover/link:translate-x-2 transition-transform duration-300">Explore Group</span>
+              </Link>
             </div>
           </div>
         </div>
@@ -166,83 +188,62 @@ export default function SIGs() {
     );
   };
 
-  if (loading) {
-    return (
-      <div className="relative w-full h-screen flex flex-col items-center justify-center bg-background px-4">
-        <div className="absolute top-6 left-6 z-50">
-          <Skeleton className="h-10 w-32 rounded-full" />
-        </div>
-        <div className="relative z-10 w-[90vw] max-w-5xl h-[65vh] max-h-[calc(100vh-280px)] min-h-[400px] flex flex-col md:flex-row bg-card rounded-3xl overflow-hidden border border-border/50 shadow-sm">
-           <Skeleton className="w-full md:w-[55%] h-1/2 md:h-full rounded-none" />
-           <div className="w-full md:w-[45%] h-1/2 md:h-full p-6 md:p-12 flex flex-col justify-center space-y-6 bg-card/50">
-              <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-10 w-[80%]" />
-              <div className="space-y-3">
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-[90%]" />
-                <Skeleton className="h-4 w-[60%]" />
-              </div>
-           </div>
-        </div>
-        <div className="flex flex-col items-center justify-center gap-4 mt-8">
-          <Skeleton className="h-12 w-40 rounded-full" />
-          <Skeleton className="h-4 w-32" />
-        </div>
-      </div>
-    );
-  }
-
-  if (sigItems.length === 0) {
-    return (
-      <div className="relative w-full h-screen flex flex-col items-center justify-center bg-background gap-4">
-        <p className="text-muted-foreground">No SIGs found. Add some from the admin panel.</p>
-        <Link to="/" className="text-sm text-[#00629B] hover:underline">← Go to Home</Link>
-      </div>
-    );
-  }
-
   return (
     <div className="relative w-full h-screen overflow-hidden bg-background flex flex-col items-center justify-center font-sans text-foreground">
       <SIGsSectionBackground imageUrl={sigItems[currentIndex]?.imageUrl} />
 
-      {/* Top Left Go Back Button */}
-      <div className="absolute top-6 left-6 z-50">
+      {/* Navigation Layer */}
+      <div className="absolute top-8 left-8 right-8 z-50 flex justify-between items-center">
         <Link
           to="/"
-          className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-card/80 backdrop-blur-md border border-border shadow-sm rounded-full text-sm font-medium transition-all hover:bg-card hover:scale-105"
+          className="group flex items-center gap-3 px-6 py-3 bg-white/10 dark:bg-black/20 backdrop-blur-2xl border border-white/20 shadow-2xl rounded-2xl text-sm font-bold transition-all hover:bg-white/20 active:scale-95"
         >
-          &larr; Go to Home
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+          <span>Home</span>
         </Link>
+        <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-[0.4em] opacity-40">
+           <span>{sigItems.length} Groups</span>
+           <div className="w-1 h-1 bg-foreground rounded-full" />
+           <span>2024 Edition</span>
+        </div>
       </div>
 
-      <div className="relative z-10 w-full h-full max-w-7xl mx-auto px-4 flex flex-col py-6 md:py-10">
-        <div className="flex-grow flex items-center justify-center relative w-full h-full">
-          {sigItems.map((item, index) => <SIGCard key={item.id} item={item} index={index} />)}
+      <div className="relative z-10 w-full h-full max-w-7xl mx-auto px-4 flex flex-col py-10 md:py-16">
+        <div className="flex-grow flex items-center justify-center relative w-full h-full overflow-visible">
+          <SmartLoader type={loaderType} containerClassName="w-full h-full flex items-center justify-center">
+            {sigItems.length > 0 ? (
+              sigItems.map((item, index) => <SIGCard key={item.id} item={item} index={index} />)
+            ) : (
+              <div className="text-center p-12 bg-card/50 backdrop-blur-xl rounded-3xl border border-border/50">
+                <Info className="w-12 h-12 mx-auto mb-4 text-[#00629B] opacity-50" />
+                <p className="text-muted-foreground font-bold tracking-tight">No groups available in this cycle.</p>
+                <Link to="/" className="text-sm text-[#00629B] mt-4 inline-block hover:underline">Return Home</Link>
+              </div>
+            )}
+          </SmartLoader>
         </div>
 
-        <div className="flex flex-col items-center justify-center gap-4 mt-auto mb-2 md:mb-6 z-50">
-          <Link
-            to={`/sigs/${sigItems[currentIndex]?.id}`}
-            className="inline-block px-8 py-3 rounded-full bg-primary text-primary-foreground text-sm font-bold shadow-md transition-all duration-300 hover:opacity-90 hover:scale-105 active:scale-95"
-          >
-            Learn More
-          </Link>
-
-          <div className="flex gap-2">
+        {/* Index & Scroll Indicator */}
+        <div className="flex flex-col items-center justify-center gap-6 mt-auto mb-6 z-50">
+          <div className="flex gap-3">
             {sigItems.map((_, idx) => (
-              <div
+              <button
                 key={idx}
-                className={`h-2 rounded-full transition-all duration-500 ${idx === currentIndex ? "w-8 bg-black dark:bg-white" : "w-2 bg-gray-400 dark:bg-gray-500"}`}
+                onClick={() => setCurrentIndex(idx)}
+                className={`h-1.5 rounded-full transition-all duration-700 ${idx === currentIndex ? "w-12 bg-[#00629B]" : "w-3 bg-[#00629B]/20 hover:bg-[#00629B]/50"}`}
               />
             ))}
           </div>
-          <p className="text-xs text-muted-foreground animate-pulse tracking-widest uppercase font-semibold">
-            Scroll Down • Scroll Up
-          </p>
-          <p className="text-xs text-muted-foreground font-medium">
-            {currentIndex + 1} / {sigItems.length}
-          </p>
+          
+          <div className="flex flex-col items-center gap-1">
+            <p className="text-[10px] text-muted-foreground animate-pulse tracking-[0.5em] uppercase font-black">
+              Scroll Left • Scroll Right
+            </p>
+            <div className="h-0.5 w-4 bg-[#00629B]/30 rounded-full" />
+            <p className="text-[14px] font-black tabular-nums tracking-tighter">
+              {String(currentIndex + 1).padStart(2, '0')} / {String(sigItems.length).padStart(2, '0')}
+            </p>
+          </div>
         </div>
       </div>
     </div>
