@@ -43,7 +43,7 @@ export default function FounderMessage() {
                 <div className="relative group">
                   <div className="absolute -inset-3 bg-primary/20 rounded-2xl rotate-3 transition-transform duration-500 group-hover:rotate-0" />
                   <img loading="lazy"
-                    src="http://ieee.socet.edu.in/wp-content/uploads/2025/03/satviksir.jpg"
+                    src="https://ieee.socet.edu.in/wp-content/uploads/2025/03/satviksir.jpg"
                     alt="Dr. Satvik Khara"
                     className="relative rounded-xl shadow-lg max-w-[220px] w-full h-auto transition-transform duration-500 group-hover:scale-[1.03]"
                   />

@@ -14,7 +14,7 @@ export default function IEEE() {
               <div className="ieee-logo-glow ieee-logo-glow--blue">
                 <img
                   loading="lazy"
-                  src="http://ieee.socet.edu.in/wp-content/uploads/2026/03/images-removebg-preview.png"
+                  src="https://ieee.socet.edu.in/wp-content/uploads/2026/03/images-removebg-preview.png"
                   alt="IEEE Logo"
                   style={{ maxHeight: '80px', maxWidth: '220px', width: 'auto', height: 'auto', objectFit: 'contain' }}
                   className="mx-auto object-contain animate-fade-in-up hover:scale-105 transition-transform duration-500"

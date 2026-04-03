@@ -7,7 +7,7 @@ const FEATURES: FeatureItem[] = [
     title: "Keep Technically Up to Date",
     description:
       "Access cutting-edge research, publications, and technical information. Stay ahead with workshops, webinars, and conferences focused on the latest technological advancements and innovations.",
-    image: "http://ieee.socet.edu.in/wp-content/uploads/2025/05/20240824_131811-scaled.jpg",
+    image: "https://ieee.socet.edu.in/wp-content/uploads/2025/05/20240824_131811-scaled.jpg",
     alt: "Technical Knowledge",
   },
   {
@@ -15,7 +15,7 @@ const FEATURES: FeatureItem[] = [
     title: "Join Global Network",
     description:
       "Connect with over 400,000 IEEE members worldwide. Build relationships with professionals, academics, and fellow students that can last throughout your career and open doors to collaboration and opportunities.",
-    image: "http://ieee.socet.edu.in/wp-content/uploads/2025/06/IMG_4747-scaled.jpg",
+    image: "https://ieee.socet.edu.in/wp-content/uploads/2025/06/IMG_4747-scaled.jpg",
     alt: "Global Network",
   },
   {
@@ -23,7 +23,7 @@ const FEATURES: FeatureItem[] = [
     title: "Gain Expertise, Open Career Doors",
     description:
       "Develop leadership, communication, and teamwork skills. Enhance your resume with IEEE activities and certifications while gaining access to career resources, job portals, and mentorship opportunities.",
-    image: "http://ieee.socet.edu.in/wp-content/uploads/2025/06/IMG_4733-scaled.jpg",
+    image: "https://ieee.socet.edu.in/wp-content/uploads/2025/06/IMG_4733-scaled.jpg",
     alt: "Career Growth",
   },
 ];

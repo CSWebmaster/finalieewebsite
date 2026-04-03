@@ -13,7 +13,7 @@ export default function IEEESOUSSB() {
             <div className="ieee-logo-glow ieee-logo-glow--blue mx-auto inline-block mb-4">
               <img
                 loading="lazy"
-                src="http://ieee.socet.edu.in/wp-content/uploads/2025/06/IEEE-SOU-SB-Logo-scaled.png"
+                src="https://ieee.socet.edu.in/wp-content/uploads/2025/06/IEEE-SOU-SB-Logo-scaled.png"
                 alt="IEEE SOU SB Logo"
                 style={{ maxHeight: '80px', maxWidth: '220px', width: 'auto', height: 'auto', objectFit: 'contain' }}
                 className={`mx-auto object-contain animate-fade-in-up ${theme !== "dark" ? "mix-blend-multiply" : ""}`}

@@ -124,12 +124,12 @@ export default function Navbar() {
                 {theme === "dark" ? (
                   <div className="flex items-center gap-2 transition-all duration-300 group-hover:scale-105 h-9 sm:h-10 md:h-11">
                     <img loading="lazy"
-                      src="http://ieee.socet.edu.in/wp-content/uploads/2026/03/N-SOU-X-NAAC-Logo-NW-SOU-X-NAAC-Logo.png"
+                      src="https://ieee.socet.edu.in/wp-content/uploads/2026/03/N-SOU-X-NAAC-Logo-NW-SOU-X-NAAC-Logo.png"
                       alt="Silver Oak Logo"
                       className="h-full w-auto object-contain flex-shrink-0"
                     />
                     <img loading="lazy"
-                      src="http://ieee.socet.edu.in/wp-content/uploads/2026/03/IEEE-New-Logo-White-scaled.png"
+                      src="https://ieee.socet.edu.in/wp-content/uploads/2026/03/IEEE-New-Logo-White-scaled.png"
                       alt="IEEE Logo"
                       className="h-full w-auto object-contain flex-shrink-0"
                     />

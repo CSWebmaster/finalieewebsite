@@ -7,7 +7,7 @@ const Loader = () => {
       {/* Logo — light-mode version works on white bg */}
       <img
         loading="eager"
-        src="http://ieee.socet.edu.in/wp-content/uploads/2025/09/N_Wedge-removebg-preview.png"
+        src="https://ieee.socet.edu.in/wp-content/uploads/2025/09/N_Wedge-removebg-preview.png"
         alt="IEEE SOU SB"
         className="loader-logo"
       />
