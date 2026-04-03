@@ -77,6 +77,25 @@ console.warn = (...args) => {
   originalConsoleWarn.apply(console, args);
 };
 
+import { useSmartLoader } from "@/hooks/useSmartLoader";
+import { SmartLoader } from "@/components/performance/SmartLoader";
+
+// Component for smart routing feedback
+const SmartRouteLoader = ({ children }: { children: React.ReactNode }) => {
+  const [isNavigating, setIsNavigating] = useState(false);
+  const { loaderType } = useSmartLoader(isNavigating);
+  
+  // Actually since Suspense triggers automatically, we'll use a simpler
+  // wrapper that just uses the branded loader after 1s for consistency
+  return (
+    <Suspense fallback={<SmartLoader type="spinner" >
+      <div />
+    </SmartLoader>}>
+      {children}
+    </Suspense>
+  );
+};
+
 // Simple Error Boundary
 class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean}> {
   constructor(props: {children: React.ReactNode}) {
@@ -123,7 +142,7 @@ function App() {
               <ScrollProgressBar />
               <TopLoader />
               <AIAssistant />
-              <Suspense fallback={<div className="min-h-screen bg-transparent" />}>
+              <SmartRouteLoader>
                 <Routes>
                   {/* Main Pages */}
                   <Route path="/" element={<Index />} />
@@ -195,7 +214,7 @@ function App() {
                   {/* 404 Fallback */}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
-              </Suspense>
+              </SmartRouteLoader>
             </BrowserRouter>
           </TooltipProvider>
         </ThemeProvider>

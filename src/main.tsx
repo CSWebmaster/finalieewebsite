@@ -1,7 +1,11 @@
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
+import { initFetchInterceptor } from './lib/performance'
 import { configureBrowserConsole } from './lib/console-guard'
+
+// Initialize performance monitoring
+initFetchInterceptor();
 
 configureBrowserConsole();
 

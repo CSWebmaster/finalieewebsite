@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { collection, getDocs, query, orderBy, where, limit } from "firebase/firestore";
+import { collection, getDocs, query, orderBy } from "firebase/firestore";
 import { db } from "../../firebase";
 import { Search, BookOpen, Calendar, Github, Youtube, Image as ImageIcon, PenSquare } from "lucide-react";
 import PageLayout from "@/components/PageLayout";
@@ -7,8 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Link, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { BLOG_CATEGORIES, BlogCategory } from "@/types/blog";
-import CardSkeleton from "@/components/CardSkeleton";
-import ImageLoader from "@/components/ImageLoader";
+import { useLatencyTracker } from "@/hooks/useLatencyTracker";
+import { useSmartLoader } from "@/hooks/useSmartLoader";
+import { SmartLoader } from "@/components/performance/SmartLoader";
+import { LazyImage } from "@/components/performance/LazyImage";
 
 const CATEGORY_COLORS: Record<string, string> = {
   blog: "bg-orange-100 text-orange-700 border-orange-200",
@@ -37,10 +39,12 @@ interface Blog {
 }
 
 export default function BlogList() {
+  useLatencyTracker("BlogList");
   const { category } = useParams<{ category?: string }>();
   const [searchTerm, setSearchTerm] = useState("");
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [loading, setLoading] = useState(true);
+  const { loaderType } = useSmartLoader(loading);
   const [activeCategory, setActiveCategory] = useState<string>(category || "all");
 
   useEffect(() => {
@@ -52,8 +56,6 @@ export default function BlogList() {
       setLoading(true);
       try {
         const blogsRef = collection(db, "blogs");
-        // Remove `where` query to bypass require composite index. 
-        // We will fetch all and filter in JavaScript.
         const q = query(blogsRef, orderBy("created_at", "desc"));
         const snapshot = await getDocs(q);
         
@@ -62,12 +64,10 @@ export default function BlogList() {
           ...doc.data(),
         })) as Blog[];
         
-        // Filter by category locally
         if (activeCategory && activeCategory !== "all") {
           data = data.filter(blog => blog.category === activeCategory);
         }
 
-        // Filter for approved blogs only. Old blogs without a status default to approved.
         const approvedData = data.filter(blog => !blog.status || blog.status === "approved");
         setBlogs(approvedData);
       } catch (error) {
@@ -172,121 +172,90 @@ export default function BlogList() {
             </div>
           </div>
 
-          {/* Blog Grid */}
-          {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <CardSkeleton key={i} />
-              ))}
-            </div>
-          ) : filteredBlogs.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {filteredBlogs.map((blog) => {
-                const firstImage = getFirstImage(blog);
-                const authorName = getAuthorName(blog);
-                const description = blog.description || blog.content || "";
-                const cat = blog.category || "blog";
+          <SmartLoader type={loaderType} containerClassName="min-h-[400px]">
+            {filteredBlogs.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {filteredBlogs.map((blog) => {
+                  const firstImage = getFirstImage(blog);
+                  const authorName = getAuthorName(blog);
+                  const description = blog.description || blog.content || "";
+                  const cat = blog.category || "blog";
 
-                return (
-                  <Link
-                    key={blog.id}
-                    to={`/blogs/${blog.id}`}
-                    className="group flex flex-col bg-white dark:bg-[#111] rounded-2xl border border-border/40 overflow-hidden hover:shadow-xl hover:border-[#00629B]/30 transition-all duration-300"
-                  >
-                    {/* Image — always fully visible, no cropping */}
-                    <div className="w-full bg-muted/10 flex items-center justify-center overflow-hidden" style={{ height: '200px' }}>
-                      {firstImage ? (
-                        <ImageLoader
-                          src={firstImage}
-                          alt={blog.title}
-                          containerClassName="w-full h-full"
-                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                        />
-                      ) : (
-                        <div className="flex flex-col items-center justify-center text-muted-foreground/30 gap-2">
-                          <BookOpen className="h-10 w-10" />
-                          <span className="text-xs">No image</span>
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Content */}
-                    <div className="p-6 flex flex-col flex-1">
-                      {/* Category + Date */}
-                      <div className="flex items-center gap-2 mb-3 flex-wrap">
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${CATEGORY_COLORS[cat] || "bg-gray-100 text-gray-600 border-gray-200"}`}>
-                          {CATEGORY_LABELS[cat] || cat}
-                        </span>
-                        <span className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          {formatDate(blog.created_at)}
-                        </span>
+                  return (
+                    <Link
+                      key={blog.id}
+                      to={`/blogs/${blog.id}`}
+                      className="group flex flex-col bg-white dark:bg-[#111] rounded-2xl border border-border/40 overflow-hidden hover:shadow-xl hover:border-[#00629B]/30 transition-all duration-300"
+                    >
+                      {/* Image */}
+                      <div className="w-full bg-muted/10 flex items-center justify-center overflow-hidden" style={{ height: '200px' }}>
+                        {firstImage ? (
+                          <LazyImage
+                            src={firstImage}
+                            alt={blog.title}
+                            containerClassName="w-full h-full"
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          />
+                        ) : (
+                          <div className="flex flex-col items-center justify-center text-muted-foreground/30 gap-2">
+                            <BookOpen className="h-10 w-10" />
+                            <span className="text-xs">No image</span>
+                          </div>
+                        )}
                       </div>
 
-                      {/* Title */}
-                      <h3 className="text-xl font-bold mb-2 group-hover:text-[#00629B] transition-colors line-clamp-2">
-                        {blog.title}
-                      </h3>
-
-                      {/* Description */}
-                      <p className="text-muted-foreground text-sm mb-4 line-clamp-3 leading-relaxed flex-1">
-                        {description.substring(0, 200)}...
-                      </p>
-
-                      {/* Meta icons */}
-                      {((blog.images?.length || 0) > 1 || (blog.githubLinks?.length || 0) > 0 || (blog.youtubeLinks?.length || 0) > 0) && (
-                        <div className="flex gap-3 mb-4">
-                          {(blog.images?.length || 0) > 1 && (
-                            <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                              <ImageIcon className="h-3 w-3" /> {blog.images!.length} images
-                            </span>
-                          )}
-                          {(blog.githubLinks?.length || 0) > 0 && (
-                            <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                              <Github className="h-3 w-3" /> GitHub
-                            </span>
-                          )}
-                          {(blog.youtubeLinks?.length || 0) > 0 && (
-                            <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                              <Youtube className="h-3 w-3" /> Video
-                            </span>
-                          )}
+                      {/* Content */}
+                      <div className="p-6 flex flex-col flex-1">
+                        <div className="flex items-center gap-2 mb-3 flex-wrap">
+                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border ${CATEGORY_COLORS[cat] || "bg-gray-100 text-gray-600 border-gray-200"}`}>
+                            {CATEGORY_LABELS[cat] || cat}
+                          </span>
+                          <span className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            {formatDate(blog.created_at)}
+                          </span>
                         </div>
-                      )}
 
-                      {/* Author + Read More button */}
-                      <div className="pt-4 border-t border-border/40 flex items-center justify-between mt-auto">
-                        <div className="flex items-center gap-2">
-                          {blog.author?.image ? (
-                            <img
-                              src={blog.author.image}
-                              alt={authorName}
-                              className="h-8 w-8 rounded-full object-cover border border-border"
-                              onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                            />
-                          ) : (
-                            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-[#00629B] to-[#00a3ff] flex items-center justify-center text-white text-xs font-bold">
-                              {authorName.charAt(0).toUpperCase()}
-                            </div>
-                          )}
-                          <span className="text-sm font-medium">{authorName}</span>
-                        </div>
-                        <div className="text-[#00629B] group-hover:translate-x-1 transition-transform">
-                          <BookOpen className="h-5 w-5" />
+                        <h3 className="text-xl font-bold mb-2 group-hover:text-[#00629B] transition-colors line-clamp-2">
+                          {blog.title}
+                        </h3>
+
+                        <p className="text-muted-foreground text-sm mb-4 line-clamp-3 leading-relaxed flex-1">
+                          {description.substring(0, 200)}...
+                        </p>
+
+                        <div className="pt-4 border-t border-border/40 flex items-center justify-between mt-auto">
+                          <div className="flex items-center gap-2">
+                            {blog.author?.image ? (
+                              <LazyImage
+                                src={blog.author.image}
+                                alt={authorName}
+                                className="h-8 w-8 rounded-full object-cover border border-border"
+                              />
+                            ) : (
+                              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-[#00629B] to-[#00a3ff] flex items-center justify-center text-white text-xs font-bold">
+                                {authorName.charAt(0).toUpperCase()}
+                              </div>
+                            )}
+                            <span className="text-sm font-medium">{authorName}</span>
+                          </div>
+                          <div className="text-[#00629B] group-hover:translate-x-1 transition-transform">
+                            <BookOpen className="h-5 w-5" />
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          ) : (
-            <div className="text-center py-20 bg-muted/10 rounded-3xl border-2 border-dashed border-border/40">
-              <BookOpen className="h-16 w-16 mx-auto mb-4 text-muted-foreground/40" />
-              <h3 className="text-xl font-semibold text-muted-foreground">No blogs found</h3>
-              <p className="text-muted-foreground mt-1">Try a different category or search term.</p>
-            </div>
-          )}
+                    </Link>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-20 bg-muted/10 rounded-3xl border-2 border-dashed border-border/40">
+                <BookOpen className="h-16 w-16 mx-auto mb-4 text-muted-foreground/40" />
+                <h3 className="text-xl font-semibold text-muted-foreground">No blogs found</h3>
+                <p className="text-muted-foreground mt-1">Try a different category or search term.</p>
+              </div>
+            )}
+          </SmartLoader>
         </div>
       </main>
     </PageLayout>
