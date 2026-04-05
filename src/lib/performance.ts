@@ -36,8 +36,24 @@ export const initFetchInterceptor = () => {
   
   window.fetch = async (...args) => {
     const start = performance.now();
-    const url = typeof args[0] === 'string' ? args[0] : (args[0] as Request).url;
-    const name = new URL(url, window.location.origin).pathname;
+    let urlString = "unknown";
+    let name = "unknown";
+
+    try {
+      if (typeof args[0] === "string") {
+        urlString = args[0];
+      } else if (args[0] instanceof URL) {
+        urlString = args[0].toString();
+      } else if (args[0] && (args[0] as Request).url) {
+        urlString = (args[0] as Request).url;
+      }
+
+      const parsedUrl = new URL(urlString, window.location.origin);
+      name = parsedUrl.pathname;
+    } catch (e) {
+      // Fallback if URL parsing fails
+      if (typeof args[0] === 'string') name = args[0].substring(0, 50);
+    }
 
     try {
       const response = await originalFetch(...args);
@@ -63,6 +79,7 @@ export const initFetchInterceptor = () => {
     }
   };
 };
+
 
 /**
  * Component Mount Timer

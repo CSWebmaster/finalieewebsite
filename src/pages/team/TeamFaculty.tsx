@@ -27,6 +27,11 @@ export default function TeamFaculty() {
 
   useEffect(() => {
     const fetchFacultyMembers = async () => {
+      if (!db) {
+        console.warn("Firestore 'db' is not initialized. Faculty members will not be loaded.");
+        setLoading(false);
+        return;
+      }
       setLoading(true);
       try {
         const membersRef = collection(db, "members");
@@ -51,6 +56,7 @@ export default function TeamFaculty() {
 
     fetchFacultyMembers();
   }, []);
+
 
   const filtered = facultyMembers.filter(
     (member) =>

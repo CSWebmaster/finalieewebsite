@@ -121,6 +121,11 @@ export default function EventsSection() {
   const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
 
   useEffect(() => {
+    if (!db) {
+      console.warn("Firestore 'db' is not initialized. Events will not be loaded.");
+      setLoading(false);
+      return;
+    }
     const q = query(collection(db, "events"), orderBy("date", "desc"), limit(15));
     const unsub = onSnapshot(q, (snap) => {
       const evts: Event[] = snap.docs
@@ -142,6 +147,7 @@ export default function EventsSection() {
   }, []);
 
   useEffect(() => {
+    if (!db) return;
     const q = query(collection(db, "events"), where("isUpcoming", "==", true), limit(30));
     const unsub = onSnapshot(q, (snap) => {
       const evts: Event[] = snap.docs.map((d) => ({
@@ -163,6 +169,7 @@ export default function EventsSection() {
     }, () => setLoading(false));
     return () => unsub();
   }, []);
+
 
   const currentEvents = activeTab === 'recent' ? recentEvents : upcomingEvents;
 
