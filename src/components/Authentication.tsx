@@ -17,6 +17,12 @@ const Authentication = () => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
+
+    if (!auth || !db) {
+      setError("Firebase is not configured. Contact the development team.");
+      setIsLoading(false);
+      return;
+    }
     
     try {
       // 1. Authenticate securely via Firebase Auth Handshake
@@ -24,26 +30,32 @@ const Authentication = () => {
       const user = userCredential.user;
       const userEmail = user.email!.trim().toLowerCase();
 
-      // 2. Query users collection in Firestore for Role check
-      let role = null;
-      
-      // Try direct doc fetch
-      const docRef = doc(db, 'users', userEmail);
-      const userSnap = await getDoc(docRef);
-      if (userSnap.exists()) {
-        role = userSnap.data().role;
-      } else {
-        // Fallback to query
-        const q = query(collection(db, "users"), where("email", "==", userEmail));
-        const qSnap = await getDocs(q);
-        if (!qSnap.empty) {
-          role = qSnap.docs[0].data().role;
-        }
-      }
-
-      // 3. CORE ADMIN BYPASS
+      // 2a. HARDCODED ADMIN BYPASS — checked FIRST, before Firestore
+      //     This works even if Firestore rules haven't been deployed yet.
+      let role: string | null = null;
       if (userEmail === "ptarang69@gmail.com") {
         role = "admin";
+      }
+
+      // 2b. For non-hardcoded users, query Firestore for their role
+      if (!role) {
+        try {
+          const docRef = doc(db, 'users', userEmail);
+          const userSnap = await getDoc(docRef);
+          if (userSnap.exists()) {
+            role = userSnap.data().role;
+          } else {
+            // Fallback: query by email field
+            const q = query(collection(db, "users"), where("email", "==", userEmail));
+            const qSnap = await getDocs(q);
+            if (!qSnap.empty) {
+              role = qSnap.docs[0].data().role;
+            }
+          }
+        } catch (firestoreErr: any) {
+          console.warn("[Auth] Could not read user role from Firestore:", firestoreErr?.message);
+          // If there's no hardcoded bypass and Firestore fails, deny access
+        }
       }
 
       if (!role) {

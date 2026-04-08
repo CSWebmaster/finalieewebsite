@@ -40,16 +40,16 @@ async function setupAdminUser(email, name) {
 
     console.log('Successfully created new user:', userRecord.uid);
 
-    // Add user to admins collection in Firestore
-    await db.collection('admins').doc(userRecord.uid).set({
-      email: email,
+    // Use UID as document ID for strict RBAC mapping
+    await db.collection('users').doc(userRecord.uid).set({
+      email: email.trim().toLowerCase(),
       name: name,
-      role: 'admin',
+      role: role,
       createdAt: admin.firestore.FieldValue.serverTimestamp(),
       lastLogin: null
     });
 
-    console.log('Successfully added user to admins collection');
+    console.log(`Successfully added ${role} user to users/{uid} mapping`);
 
     return userRecord.uid;
   } catch (error) {
@@ -60,7 +60,7 @@ async function setupAdminUser(email, name) {
 
 async function listAdminUsers() {
   try {
-    const snapshot = await db.collection('admins').get();
+    const snapshot = await db.collection('users').get();
     console.log('Current admin users:');
     snapshot.forEach(doc => {
       console.log(`- ${doc.id}: ${doc.data().email} (${doc.data().name})`);
@@ -72,8 +72,8 @@ async function listAdminUsers() {
 
 async function removeAdminUser(email) {
   try {
-    // Find user by email in admins collection
-    const snapshot = await db.collection('admins').where('email', '==', email).get();
+    // Find user by email in users collection
+    const snapshot = await db.collection('users').where('email', '==', email).get();
     
     if (snapshot.empty) {
       console.log('No admin user found with email:', email);
@@ -82,8 +82,8 @@ async function removeAdminUser(email) {
 
     // Remove from Firestore
     snapshot.forEach(async (doc) => {
-      await db.collection('admins').doc(doc.id).delete();
-      console.log('Removed from admins collection:', doc.id);
+      await db.collection('users').doc(doc.id).delete();
+      console.log('Removed from users collection:', doc.id);
       
       // Remove from Firebase Authentication
       try {

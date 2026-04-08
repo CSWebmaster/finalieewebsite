@@ -31,6 +31,10 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab, onTabCha
   const [pendingBlogCount, setPendingBlogCount] = useState(0);
 
   useEffect(() => {
+    if (!db) {
+      console.error("[AdminLayout] Firestore db not initialized. Check Firebase env vars.");
+      return;
+    }
     const q = query(collection(db, "blogs"), where("status", "==", "pending"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       setPendingBlogCount(snapshot.size);

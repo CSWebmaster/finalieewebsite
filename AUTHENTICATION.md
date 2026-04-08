@@ -66,8 +66,9 @@ match /events/{eventId} {
 }
 
 // Admin-only access for write operations
-function isAdmin(uid) {
-  return get(/databases/$(database)/documents/admins/$(uid)).data.role == 'admin';
+function isAdminDoc(email) {
+  return exists(/databases/$(database)/documents/users/$(email)) &&
+         get(/databases/$(database)/documents/users/$(email)).data.role == 'admin';
 }
 ```
 
@@ -79,7 +80,7 @@ function isAdmin(uid) {
 
 ### Admin User Management
 
-Admin users are managed through a dedicated `admins` collection in Firestore:
+Admin users are managed through a dedicated `users` collection in Firestore:
 
 ```javascript
 {

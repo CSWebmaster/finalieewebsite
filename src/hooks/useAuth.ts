@@ -4,11 +4,11 @@ import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 
 export interface UserData {
-  id: string;
+  uid: string;
   name: string;
   email: string;
-  enrollment_number: string;
   role: 'admin' | 'writer';
+  enrollment_number?: string;
 }
 
 export const useAuth = () => {
@@ -18,47 +18,49 @@ export const useAuth = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!auth) {
+      console.warn("[useAuth] Firebase Auth not initialized.");
+      setLoading(false);
+      return;
+    }
+
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setLoading(true);
       setError(null);
       
       if (user) {
+        if (!db) {
+          console.error("[useAuth] Firestore not available.");
+          setError("Database connection error");
+          setLoading(false);
+          return;
+        }
+
         try {
-          // Check if user exists in Firestore 'users' collection using email as document ID
-          // The prompt says "Query users collection in Firestore", using email as ID is common 
-          // but let's be safe and check if we should query by field. 
-          // "users collection: users: - id, - name, - email, - enrollment_number, - role"
-          
-          const userRef = doc(db, 'users', user.email!);
+          // STRICT RBAC: Fetch document by UID
+          const userRef = doc(db, 'users', user.uid);
           const userSnap = await getDoc(userRef);
 
           if (userSnap.exists()) {
-            const data = userSnap.data() as Omit<UserData, 'id'>;
-            
-            // Extract enrollment number from email if not already there
-            // Example: 123456@silveroakuni.ac.in -> enrollment_number = 123456
-            const emailPrefix = user.email!.split('@')[0];
-            const enrollmentNumber = data.enrollment_number || emailPrefix;
-
+            const data = userSnap.data();
             setUserData({
-              id: userSnap.id,
-              ...data,
-              enrollment_number: enrollmentNumber
+              uid: user.uid,
+              name: data.name || "User",
+              email: user.email || data.email,
+              role: data.role as 'admin' | 'writer',
+              enrollment_number: data.enrollment_number
             });
             setCurrentUser(user);
           } else {
-            // User authenticated in Firebase but NOT in our DB
-            console.error("Unauthorized access: User not found in DB");
-            setError("Unauthorized access");
-            await signOut(auth);
-            setCurrentUser(null);
+            console.warn(`[useAuth] Unauthorized: No document found for UID ${user.uid} in 'users' collection.`);
+            setError("Unauthorized: Your account is not registered as an Admin or Writer.");
+            // We don't auto-signout here because the UI might want to show a specific error
+            setCurrentUser(user);
             setUserData(null);
           }
         } catch (err: any) {
-          console.error("Error fetching user data:", err);
-          setError("Failed to verify user data");
-          await signOut(auth);
-          setCurrentUser(null);
+          console.error("[useAuth] Firestore error:", err.code, err.message);
+          setError(`Permission Error: ${err.message}`);
           setUserData(null);
         }
       } else {
@@ -79,5 +81,5 @@ export const useAuth = () => {
     }
   };
 
-  return { currentUser, userData, loading, error, logout };
+  return { currentUser, userData, loading, error, logout, isAdmin: userData?.role === 'admin', isWriter: userData?.role === 'writer' };
 };

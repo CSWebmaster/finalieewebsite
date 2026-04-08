@@ -42,6 +42,14 @@ const Dashboard: React.FC<DashboardProps> = ({ navigateTo }) => {
 
   useEffect(() => {
     console.log("🟡 useEffect starting data fetch");
+
+    if (!db) {
+      console.error("[Dashboard] Firestore db not initialized. Check Firebase env vars.");
+      setError("Firebase is not configured. Check environment variables.");
+      setLoading(false);
+      return;
+    }
+
     let eventsList: any[] = [];
     let membersList: any[] = [];
     let awardsList: any[] = [];

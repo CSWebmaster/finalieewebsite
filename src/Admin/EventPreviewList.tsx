@@ -38,6 +38,13 @@ const EventPreviewList: React.FC<EventPreviewListProps> = ({
   // Use Firestore real-time updates
   useEffect(() => {
     setLoading(true);
+
+    if (!db) {
+      setError("Firebase is not configured. Check environment variables.");
+      setLoading(false);
+      return;
+    }
+
     try {
       const eventsQuery = query(
         collection(db, "events")

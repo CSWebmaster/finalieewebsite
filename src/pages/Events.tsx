@@ -38,6 +38,11 @@ export default function Events() {
   useEffect(() => {
     const fetchEvents = async () => {
       setIsLoading(true);
+      if (!db) {
+        console.error("[Events] Firestore db is not initialized. Check Firebase env vars.");
+        setIsLoading(false);
+        return;
+      }
       try {
         const eventsRef = collection(db, "events");
         const snapshot = await getDocs(eventsRef);
@@ -53,8 +58,12 @@ export default function Events() {
         );
 
         setEvents(sortedByDate);
-      } catch (error) {
-        console.error("Error fetching events:", error);
+      } catch (error: any) {
+        console.error("[Events] 🔥 Error fetching events:", {
+          code: error.code,
+          message: error.message,
+          stack: error.stack
+        });
       } finally {
         setIsLoading(false);
       }

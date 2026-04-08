@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth, db } from "../firebase";
-import { useNavigate } from "react-router-dom";
-import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
+import { useNavigate, useLocation } from "react-router-dom";
+import { doc, getDoc } from "firebase/firestore";
 import { Lock, Mail, ShieldAlert, AlertCircle, Loader2 } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
@@ -13,6 +13,7 @@ const Login = () => {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -21,74 +22,52 @@ const Login = () => {
     setError(null);
     
     try {
-      // 1. Authenticate securely via Firebase Auth Handshake
+      // 1. Authenticate securely via Firebase Auth
       const userCredential = await signInWithEmailAndPassword(auth, email.trim(), password.trim());
       const user = userCredential.user;
-      const userEmail = user.email!.trim().toLowerCase();
 
-      // 2. Query users collection in Firestore for Role check
-      let role = null;
-      let name = "Admin";
+      // 2. Query users collection in Firestore for Role check (BY UID)
+      if (!db) throw new Error("Firestore not initialized.");
       
-      // Try direct doc fetch first
-      const docRef = doc(db, 'users', userEmail);
-      const userSnap = await getDoc(docRef);
+      const userRef = doc(db, 'users', user.uid);
+      const userSnap = await getDoc(userRef);
 
-      if (userSnap.exists()) {
-        role = userSnap.data().role;
-        name = userSnap.data().name || "Admin";
+      if (!userSnap.exists()) {
+        await signOut(auth);
+        setError("Unauthorized access. Your profile was not found in the database.");
+        toast({
+          title: "Access Denied",
+          description: "You are not registered in our database.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const userData = userSnap.data();
+      const role = userData.role;
+      const name = userData.name || "User";
+
+      // 3. Role-Based Redirection
+      if (role === 'admin') {
+        toast({
+          title: "Admin Access Granted",
+          description: `Welcome back, ${name}!`,
+        });
+        navigate("/ieee-admin-portal-sou-2025");
+      } else if (role === 'writer') {
+        toast({
+          title: "Writer Access Granted",
+          description: `Welcome, ${name}! Redirecting to Blog tool...`,
+        });
+        navigate("/write-blog");
       } else {
-        // Try query by email field as fallback
-        const q = query(collection(db, "users"), where("email", "==", userEmail));
-        const qSnap = await getDocs(q);
-        if (!qSnap.empty) {
-          const data = qSnap.docs[0].data();
-          role = data.role;
-          name = data.name || "Admin";
-        }
-      }
-
-      // 3. CORE ADMIN BYPASS (Emergency resolution for ptarang69@gmail.com)
-      if (userEmail === "ptarang69@gmail.com") {
-        role = "admin";
-      }
-
-      if (!role) {
         await signOut(auth);
-        setError("Unauthorized access. Profile not found in database.");
-        toast({
-          title: "Access Denied",
-          description: "Unauthorized access: You are not registered in our database.",
-          variant: "destructive",
-        });
-        return;
+        setError("Invalid role assignment. Please contact lead admin.");
       }
-
-      // 4. Reject Writers from Admin Panel
-      if (role !== 'admin') {
-        await signOut(auth);
-        setError("Unauthorized access. Admin privileges required.");
-        toast({
-          title: "Access Denied",
-          description: "Writers cannot access the Admin panel. Use 'Write a Blog' button on the frontend instead.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // 5. Authorized: Allow access
-      console.log("Authentication successful, redirecting...");
-      toast({
-        title: "Login Successful",
-        description: `Welcome back, ${name}!`,
-      });
-      
-      navigate("/ieee-admin-portal-sou-2025");
       
     } catch (error: any) {
       console.error("Authentication failed:", error);
       
-      // Handle different Firebase auth errors
       switch (error.code) {
         case 'auth/invalid-email':
           setError("Invalid email format.");
@@ -97,19 +76,19 @@ const Login = () => {
           setError("This account has been disabled.");
           break;
         case 'auth/user-not-found':
-          setError("No account found with this email.");
-          break;
         case 'auth/wrong-password':
-          setError("Incorrect password.");
-          break;
         case 'auth/invalid-credential':
           setError("Invalid credentials. Please check your email and password.");
           break;
         case 'auth/too-many-requests':
           setError("Too many failed login attempts. Please try again later.");
           break;
-        default:
-          setError("Authentication failed. " + (error.message || "Please check your connection and try again."));
+        case 'permission-denied':
+          setError("Access Denied: Firestore security rules blocked this request.");
+          break;
+        default: {
+          setError(`Authentication error: ${error.message}`);
+        }
       }
     } finally {
       setIsLoading(false);
@@ -137,10 +116,10 @@ const Login = () => {
         </div>
 
         {/* Error Alert */}
-        {error && (
+        {(error || location.state?.error) && (
           <Alert variant="destructive" className="mb-6 bg-red-950/50 border-red-900/50 text-red-200">
             <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{error}</AlertDescription>
+            <AlertDescription>{error || location.state?.error}</AlertDescription>
           </Alert>
         )}
 

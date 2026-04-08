@@ -14,13 +14,16 @@ import Dashboard from "../Admin/Dashboard";
 import AdminLayout from "../Admin/AdminLayout";
 import UserManagement from "../Admin/UserManagement";
 import UserModal from "../Admin/UserModal";
+import { useAuth } from "@/hooks/useAuth";
 import { db } from "../firebase";
 import { doc, deleteDoc, collection, addDoc, serverTimestamp } from "@/lib/firestore-client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { Loader2, ShieldAlert } from "lucide-react";
 
 const Admin = () => {
+  const { userData, loading, isAdmin, isWriter } = useAuth();
   const [activeTab, setActiveTab] = useState<string>("dashboard");
   const [showEventModal, setShowEventModal] = useState(false);
   const [showAwardModal, setShowAwardModal] = useState(false);
@@ -34,6 +37,13 @@ const Admin = () => {
   const [selectedBlog, setSelectedBlog] = useState<any>(null);
   const [successMessage, setSuccessMessage] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string>("");
+
+  useEffect(() => {
+    // Redirect writers if they somehow land on user tab
+    if (isWriter && activeTab === 'users') {
+      setActiveTab('dashboard');
+    }
+  }, [isWriter, activeTab]);
 
   // Navigation handler from dashboard to specific tabs
   const handleNavigate = (section: string) => {
@@ -84,19 +94,22 @@ const Admin = () => {
   const handleEditUser = (user: any) => { setSelectedUser(user); setShowUserModal(true); };
   const handleEditBlog = (blog: any) => { setSelectedBlog(blog); setShowBlogModal(true); };
 
-  // TASK 17: Log admin activity to Firestore (non-blocking)
+  // ACTIVITY LOGGING
   const logActivity = async (action: string, contentType: string, contentId: string, contentName: string) => {
     try {
-      const adminEmail = localStorage.getItem("adminSession") || "unknown";
+      const email = userData?.email || "unknown";
       await addDoc(collection(db, "adminActivityLogs"), {
         action,
         contentType,
         contentId,
         contentName,
-        adminEmail,
+        adminEmail: email,
         timestamp: serverTimestamp(),
+        role: userData?.role || 'unknown'
       });
-    } catch (_) {}
+    } catch (_) {
+      console.warn("Could not log activity - check rules.");
+    }
   };
 
   // Delete Handlers
@@ -154,6 +167,31 @@ const Admin = () => {
       return () => clearTimeout(timeout);
     }
   }, [successMessage, errorMessage]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-12 w-12 text-[#00629B] animate-spin" />
+          <p className="text-slate-400">Loading Dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Final safety check for Authorization
+  if (!isAdmin && !isWriter) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a] p-4 text-center">
+        <div className="max-w-md p-8 rounded-2xl border border-red-900/50 bg-red-950/20 backdrop-blur-xl">
+          <ShieldAlert className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <h1 className="text-xl font-bold text-white mb-2">Unauthorized</h1>
+          <p className="text-slate-400 mb-6">Your account role does not have access to the admin panel.</p>
+          <Button onClick={() => window.location.href = "/login"}>Back to Login</Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <AdminLayout activeTab={activeTab} onTabChange={setActiveTab}>
@@ -279,7 +317,7 @@ const Admin = () => {
         </div>
       )}
 
-      {activeTab === 'users' && (
+      {activeTab === 'users' && isAdmin && (
         <div className="space-y-6">
           <div className="flex justify-between items-center">
             <h2 className="text-2xl font-bold">User Access Management</h2>

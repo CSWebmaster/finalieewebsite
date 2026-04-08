@@ -24,15 +24,15 @@ Since you're getting authentication failed errors, here's how to quickly set up 
      - **Password**: `admin123`
    - Click "Add user"
 
-4. **Create Admins Collection in Firestore**
+4. **Create Users Collection in Firestore**
    - In the left sidebar, click on "Firestore Database"
    - Click "Create database"
    - Set security rules to "Start in test mode" (for now)
    - Click "Next" → "Enable"
 
-5. **Add Admin Document**
+5. **Add User Document**
    - In Firestore, click "Create collection"
-   - Collection ID: `admins`
+   - Collection ID: `users`
    - Document ID: (auto-generated or use the user's UID)
    - Add these fields:
      ```
