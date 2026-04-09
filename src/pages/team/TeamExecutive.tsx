@@ -8,7 +8,7 @@ import { collection, query, where, getDocs } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
 import ImageLoader from "@/components/ImageLoader";
 
-const YEARS = Array.from({ length: 10 }, (_, i) => 2017 + i); // [2017 … 2026]
+const YEARS = Array.from({ length: 5 }, (_, i) => 2022 + i); // [2022 … 2026]
 
 const SOCIETY_TITLES: Record<string, string> = {
   SB: "Student Branch",

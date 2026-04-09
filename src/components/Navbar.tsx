@@ -49,6 +49,7 @@ const NAV_ITEMS: NavItem[] = [
       { title: "Faculty Advisor", href: "/team/faculty-advisor" },
       { title: "Student Executive Committee", href: "/team/advisory-board" },
       { title: "Executive Members", href: "/team/executive-members" },
+      { title: "Core Members", href: "/team/core-members" },
     ],
   },
   {
