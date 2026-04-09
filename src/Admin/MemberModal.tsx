@@ -97,7 +97,7 @@ const MemberModal: React.FC<MemberModalProps> = ({ isOpen, onClose, member, setS
         }
 
         if (memberType === "core") {
-          memberData.position = memberCorePosition;
+          memberData.position = memberCommittee === "Social Media Committee" ? "" : memberCorePosition;
           memberData.committee = memberCommittee;
         }
       }
@@ -184,8 +184,10 @@ const MemberModal: React.FC<MemberModalProps> = ({ isOpen, onClose, member, setS
 
             {memberType === "core" && (
               <>
-                <Dropdown label="Committee" value={memberCommittee} onChange={setMemberCommittee} options={["Management Committee", "Curation Committee", "Content Committee", "Creative Committee", "Outreach Committee", "Technical Committee"]} />
-                <Dropdown label="Position" value={memberCorePosition} onChange={setMemberCorePosition} options={coreRoles} />
+                <Dropdown label="Committee" value={memberCommittee} onChange={setMemberCommittee} options={["Management Committee", "Curation Committee", "Content Committee", "Creative Committee", "Outreach Committee", "Technical Committee", "Social Media Committee"]} />
+                {memberCommittee !== "Social Media Committee" && (
+                  <Dropdown label="Position" value={memberCorePosition} onChange={setMemberCorePosition} options={coreRoles} />
+                )}
               </>
             )}
 

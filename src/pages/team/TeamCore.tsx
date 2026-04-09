@@ -16,6 +16,7 @@ const COMMITTEE_TITLES = [
   "Creative Committee",
   "Outreach Committee",
   "Management Committee",
+  "Social Media Committee",
 ];
 
 // Define position priority

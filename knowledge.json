@@ -70,7 +70,11 @@
     },
     {
       "question": "What committees exist in IEEE SOU SB?",
-      "answer": "Committees include Content, Creative, Curation, Management, Outreach, and Technical."
+      "answer": "Committees include Content, Creative, Curation, Management, Outreach, Technical, and Social Media."
+    },
+    {
+      "question": "What does the Social Media Committee do?",
+      "answer": "The Social Media Committee manages the online presence and engagement across various social media platforms."
     },
     {
       "question": "What does the Technical Committee do?",
