@@ -137,12 +137,13 @@ export default function IEEESOUSSBJRNYLoop() {
 
   const JourneyCard = ({ item, index }: { item: JourneyItem, index: number }) => {
     const diff = index - currentIndex;
+    const isActive = diff === 0;
 
     // Horizontal transformation logic
     let scale = 1, translateX = 0, opacity = 1, zIndex = 40;
     if (diff < 0) {
       scale = 0.94; translateX = -45; opacity = 0; zIndex = 30;
-    } else if (diff === 0) {
+    } else if (isActive) {
       scale = 1; translateX = 0; opacity = 1; zIndex = 40;
     } else {
       scale = 0.94; translateX = 45; opacity = 0; zIndex = 20;
@@ -155,12 +156,14 @@ export default function IEEESOUSSBJRNYLoop() {
           transform: `translateX(${translateX}%) scale(${scale})`, 
           opacity, 
           zIndex, 
-          pointerEvents: diff === 0 ? "auto" : "none",
+          pointerEvents: isActive ? "auto" : "none",
           visibility: Math.abs(diff) > 1 ? "hidden" : "visible"
         }}
       >
-        <div className="relative group overflow-hidden rounded-[2.5rem] border border-white/10 dark:border-white/5 bg-card/25 backdrop-blur-[40px] shadow-[0_50px_100px_rgba(0,0,0,0.3)] h-[70vh] max-h-[calc(100vh-280px)] min-h-[450px] w-full flex flex-col md:flex-row transition-all duration-500 hover:shadow-[0_60px_150px_rgba(0,0,0,0.4)]">
-          
+        <div
+          key={`card-${item.id}-${currentIndex}`}
+          className={`relative group overflow-hidden rounded-[2.5rem] border border-white/10 dark:border-white/5 bg-card/25 backdrop-blur-[40px] shadow-[0_50px_100px_rgba(0,0,0,0.3)] h-[70vh] max-h-[calc(100vh-280px)] min-h-[450px] w-full flex flex-col md:flex-row journey-card-hover ${isActive ? "journey-card-active" : ""}`}
+        >
           <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
              <div className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] animate-[spin_30s_linear_infinite] bg-[conic-gradient(from_0deg_at_50%_50%,rgba(0,0,0,0)_0%,rgba(255,255,255,0.03)_50%,rgba(0,0,0,0)_100%)] mix-blend-soft-light pointer-events-none" />
           </div>
@@ -175,38 +178,40 @@ export default function IEEESOUSSBJRNYLoop() {
           </div>
 
           <div className="relative z-10 w-full md:w-[42%] h-[65%] md:h-full p-8 md:p-14 flex flex-col justify-center bg-gradient-to-br from-card/80 to-transparent">
-            <div className={`transition-all duration-1000 delay-250 ease-out ${diff === 0 ? "opacity-100 translate-y-0" : "opacity-0 translate-y-12"}`}>
-              <div className="flex items-center gap-4 mb-8">
-                 {item.year && (
+            {isActive && (
+              <>
+                <div className="journey-content-item d1 flex items-center gap-4 mb-8">
+                  {item.year && (
                     <div className="px-4 py-1.5 bg-primary/20 backdrop-blur-md text-primary text-[10px] font-black rounded-full tracking-[2px] border border-primary/20 shadow-inner">
                       {item.year}
                     </div>
                   )}
-                 <div className="h-[2px] w-12 bg-primary/50 rounded-full group-hover:w-24 transition-all duration-700" />
-                 <span className="text-[9px] uppercase tracking-[0.4em] text-primary/60 font-black hidden sm:block">History Loop</span>
-              </div>
-              
-              <h3 className="text-3xl md:text-4xl lg:text-5xl font-black mb-8 leading-[1.05] tracking-tighter text-foreground drop-shadow-md">
-                {item.title}
-              </h3>
-              
-              <p className="text-sm md:text-base lg:text-lg text-muted-foreground leading-[1.7] line-clamp-6 md:line-clamp-none font-medium opacity-90 mb-10">
-                {item.details}
-              </p>
+                  <div className="journey-accent-line h-[2px] bg-primary/50 rounded-full" />
+                  <span className="text-[9px] uppercase tracking-[0.4em] text-primary/60 font-black hidden sm:block">History Loop</span>
+                </div>
 
-              <Link
-                to={`/about/ieee-sou-sb-journey-loop/${item.id}`}
-                className="mt-4 flex items-center gap-4 text-primary font-black group/link"
-              >
-                <div className="flex items-center justify-center w-12 h-12 rounded-[1rem] bg-primary/10 border border-primary/10 group-hover/link:bg-primary group-hover/link:text-primary-foreground group-hover/link:rotate-12 transition-all duration-300">
-                  <BookOpen className="w-6 h-6" />
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[10px] uppercase tracking-[0.2em] opacity-50">Deep Dive</span>
-                  <span className="text-xs uppercase tracking-widest font-black">Chapter Details</span>
-                </div>
-              </Link>
-            </div>
+                <h3 className="journey-content-item d2 text-3xl md:text-4xl lg:text-5xl font-black mb-8 leading-[1.05] tracking-tighter text-foreground drop-shadow-md">
+                  {item.title}
+                </h3>
+
+                <p className="journey-content-item d3 text-sm md:text-base lg:text-lg text-muted-foreground leading-[1.7] line-clamp-6 md:line-clamp-none font-medium opacity-90 mb-10">
+                  {item.details}
+                </p>
+
+                <Link
+                  to={`/about/ieee-sou-sb-journey-loop/${item.id}`}
+                  className="journey-content-item d4 mt-4 flex items-center gap-4 text-primary font-black group/link"
+                >
+                  <div className="flex items-center justify-center w-12 h-12 rounded-[1rem] bg-primary/10 border border-primary/10 group-hover/link:bg-primary group-hover/link:text-primary-foreground group-hover/link:rotate-12 transition-all duration-300">
+                    <BookOpen className="w-6 h-6" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[10px] uppercase tracking-[0.2em] opacity-50">Deep Dive</span>
+                    <span className="text-xs uppercase tracking-widest font-black">Chapter Details</span>
+                  </div>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -249,7 +254,11 @@ export default function IEEESOUSSBJRNYLoop() {
               <button
                 key={idx}
                 onClick={() => setCurrentIndex(idx)}
-                className={`h-1 rounded-full transition-all duration-700 ${idx === currentIndex ? "w-16 bg-primary shadow-[0_0_15px_rgba(var(--primary),0.5)]" : "w-4 bg-primary/10 hover:bg-primary/30"}`}
+                className={`h-1 rounded-full transition-all duration-700 ${
+                  idx === currentIndex
+                    ? "journey-track-active bg-primary shadow-[0_0_15px_rgba(99,102,241,0.4)]"
+                    : "w-4 bg-primary/10 hover:bg-primary/30"
+                }`}
               />
             ))}
           </div>

@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { sendEmail } from "@/lib/sendEmail";
+import { saveToGoogleSheets } from "@/lib/googleSheets";
 import { useLatencyTracker } from "@/hooks/useLatencyTracker";
 
 export default function Join() {
@@ -45,34 +46,28 @@ export default function Join() {
 
     setIsLoading(true);
     try {
-      // Save directly to Firestore for admin review
+      const timestamp = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+
+      // 1. Save to Firestore
       await addDoc(collection(db, "ieee_applications"), {
-        name,
-        email,
-        phone,
-        enrollment,
-        college,
-        department,
-        semester,
-        academicYear,
-        reason,
+        name, email, phone, enrollment, college, department, semester, academicYear, reason,
         createdAt: serverTimestamp(),
         status: "pending",
       });
 
-      // Also send notification email
+      // 2. Save to Google Sheets (non-blocking — won't fail the submission)
+      saveToGoogleSheets({
+        sheet: "join", timestamp, name, email,
+        phone: phone || "", enrollment: enrollment || "", college: college || "",
+        department, semester, academicYear, reason: reason || "",
+      }).catch((err) => console.error("[GoogleSheets] Join save failed:", err));
+
+      // 3. Send notification email
       await sendEmail({
-        name,
-        email,
-        phone,
-        page: "Join",
+        name, email, phone, page: "Join",
         fields: {
-          "Enrollment Number": enrollment,
-          College: college,
-          Department: department,
-          Semester: semester,
-          "Academic Year": academicYear,
-          "Reason to Join": reason,
+          "Enrollment Number": enrollment, College: college, Department: department,
+          Semester: semester, "Academic Year": academicYear, "Reason to Join": reason,
         },
       });
 

@@ -12,9 +12,9 @@ const YEARS = Array.from({ length: 5 }, (_, i) => 2022 + i); // [2022 … 2026]
 
 const SOCIETY_TITLES: Record<string, string> = {
   SB: "Student Branch",
-  WIE: "Women in Engineering",
   SPS: "Signal Processing Society",
   CS: "Computer Society",
+  WIE: "Women in Engineering",
   SIGHT: "Special Interest Group on Humanitarian Technology",
 };
 
@@ -47,9 +47,9 @@ export default function TeamExecutive() {
 
         const grouped: Record<string, any[]> = {
           SB: [],
-          WIE: [],
           SPS: [],
           CS: [],
+          WIE: [],
           SIGHT: [],
         };
 

@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { sendEmail } from "@/lib/sendEmail";
+import { saveToGoogleSheets } from "@/lib/googleSheets";
 import { useLatencyTracker } from "@/hooks/useLatencyTracker";
 
 export default function ContactUs() {
@@ -33,19 +34,22 @@ export default function ContactUs() {
 
     setIsLoading(true);
     try {
-      // Save directly to Firestore for records/admin purposes
+      const timestamp = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+
+      // 1. Save to Firestore
       await addDoc(collection(db, "contacts"), {
-        name,
-        email,
-        phone,
-        message,
+        name, email, phone, message,
         createdAt: serverTimestamp(),
         status: "new",
       });
 
-      // Also send the email
+      // 2. Save to Google Sheets (non-blocking — won't fail the submission)
+      saveToGoogleSheets({ sheet: "contact", timestamp, name, email, phone: phone || "", message: message || "" })
+        .catch((err) => console.error("[GoogleSheets] Contact save failed:", err));
+
+      // 3. Send notification email
       await sendEmail({ name, email, phone, message, page: "Contact" });
-      
+
       toast.success("Message sent! We'll get back to you soon.");
       form.reset();
     } catch (err: unknown) {
