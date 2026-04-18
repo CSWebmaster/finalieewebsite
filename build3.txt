@@ -1,0 +1,117 @@
+﻿
+> vite_react_shadcn_ts@0.0.0 build
+> vite build
+
+[36mvite v7.3.1 [32mbuilding client environment for production...[36m[39m
+transforming...
+node.exe : 
+At line:1 char:1
++ & "C:\Program 
+Files\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo       
+       : NotSpecified:   
+  (:String) [], Remote   
+ Exception
+    + FullyQualifiedErro 
+   rId : NativeCommandE  
+  rror
+ 
+[1m[33mwarn[39m[22m 
+- The class `ease-[cubic-
+bezier(0.25,1,0.5,1)]` 
+is ambiguous and matches 
+multiple utilities.
+[1m[33mwarn[39m[22m 
+- If this is content and 
+not a class, replace it 
+with `ease-&lsqb;cubic-be
+zier(0.25,1,0.5,1)&rsqb;`
+ to silence this warning.
+[32mΓ£ô[39m 2244 modules transformed.
+rendering chunks...
+computing gzip size...
+[2mdist/[22m[32mindex.html                              [39m[1m[2m  2.11 kB[22m[1m[22m[2m Γöé gzip:   1.03 kB[22m
+[2mdist/[22m[35massets/App-DkVcTU9S.css                 [39m[1m[2m 12.72 kB[22m[1m[22m[2m Γöé gzip:   3.17 kB[22m
+[2mdist/[22m[35massets/index-hUdGIOLl.css               [39m[1m[2m127.28 kB[22m[1m[22m[2m Γöé gzip:  20.63 kB[22m
+[2mdist/[22m[36massets/journeyData-BymVQYLY.js          [39m[1m[2m  0.03 kB[22m[1m[22m[2m Γöé gzip:   0.05 kB[22m
+[2mdist/[22m[36massets/chevron-left-DHKbLKWb.js         [39m[1m[2m  0.13 kB[22m[1m[22m[2m Γöé gzip:   0.14 kB[22m
+[2mdist/[22m[36massets/chevron-right-CsRsCOwP.js        [39m[1m[2m  0.13 kB[22m[1m[22m[2m Γöé gzip:   0.14 kB[22m
+[2mdist/[22m[36massets/blog-Dr-T4QXC.js                 [39m[1m[2m  0.15 kB[22m[1m[22m[2m Γöé gzip:   0.12 kB[22m
+[2mdist/[22m[36massets/arrow-left-C8G9JnLx.js           [39m[1m[2m  0.16 kB[22m[1m[22m[2m Γöé gzip:   0.16 kB[22m
+[2mdist/[22m[36massets/search-DrfzrT3_.js               [39m[1m[2m  0.17 kB[22m[1m[22m[2m Γöé gzip:   0.17 kB[22m
+[2mdist/[22m[36massets/clock-pliimR1M.js                [39m[1m[2m  0.18 kB[22m[1m[22m[2m Γöé gzip:   0.17 kB[22m
+[2mdist/[22m[36massets/user-BIlknf5i.js                 [39m[1m[2m  0.19 kB[22m[1m[22m[2m Γöé gzip:   0.18 kB[22m
+[2mdist/[22m[36massets/lock-DWQI64O6.js                 [39m[1m[2m  0.20 kB[22m[1m[22m[2m Γöé gzip:   0.19 kB[22m
+[2mdist/[22m[36massets/mail-DOLbo0r7.js                 [39m[1m[2m  0.21 kB[22m[1m[22m[2m Γöé gzip:   0.19 kB[22m
+[2mdist/[22m[36massets/map-pin-DAeaD4cc.js              [39m[1m[2m  0.25 kB[22m[1m[22m[2m Γöé gzip:   0.22 kB[22m
+[2mdist/[22m[36massets/calendar-naqZ02X2.js             [39m[1m[2m  0.25 kB[22m[1m[22m[2m Γöé gzip:   0.20 kB[22m
+[2mdist/[22m[36massets/sendEmail-l_ymqVVG.js            [39m[1m[2m  0.26 kB[22m[1m[22m[2m Γöé gzip:   0.22 kB[22m
+[2mdist/[22m[36massets/award-BLyzPB7d.js                [39m[1m[2m  0.27 kB[22m[1m[22m[2m Γöé gzip:   0.22 kB[22m
+[2mdist/[22m[36massets/image-BaL-5ITq.js                [39m[1m[2m  0.27 kB[22m[1m[22m[2m Γöé gzip:   0.22 kB[22m
+[2mdist/[22m[36massets/book-open-DLQxG0_q.js            [39m[1m[2m  0.27 kB[22m[1m[22m[2m Γöé gzip:   0.20 kB[22m
+[2mdist/[22m[36massets/graduation-cap-BzRQ-Xt_.js       [39m[1m[2m  0.32 kB[22m[1m[22m[2m Γöé gzip:   0.24 kB[22m
+[2mdist/[22m[36massets/github-05Twf7n-.js               [39m[1m[2m  0.40 kB[22m[1m[22m[2m Γöé gzip:   0.29 kB[22m
+[2mdist/[22m[36massets/trophy-Dm1Gy76F.js               [39m[1m[2m  0.46 kB[22m[1m[22m[2m Γöé gzip:   0.28 kB[22m
+[2mdist/[22m[36massets/textarea-DvWSo11y.js             [39m[1m[2m  0.48 kB[22m[1m[22m[2m Γöé gzip:   0.32 kB[22m
+[2mdist/[22m[36massets/calendar-days-DqIHBNxp.js        [39m[1m[2m  0.49 kB[22m[1m[22m[2m Γöé gzip:   0.26 kB[22m
+[2mdist/[22m[36massets/ProtectedRoute--n-mQPqM.js       [39m[1m[2m  0.53 kB[22m[1m[22m[2m Γöé gzip:   0.35 kB[22m
+[2mdist/[22m[36massets/shield-alert-C4O8PnRy.js         [39m[1m[2m  0.55 kB[22m[1m[22m[2m Γöé gzip:   0.34 kB[22m
+[2mdist/[22m[36massets/input-D09_1sFm.js                [39m[1m[2m  0.58 kB[22m[1m[22m[2m Γöé gzip:   0.36 kB[22m
+[2mdist/[22m[36massets/OrganizationMeta-C2zmb_OV.js     [39m[1m[2m  0.62 kB[22m[1m[22m[2m Γöé gzip:   0.38 kB[22m
+[2mdist/[22m[36massets/users-D0sSEWtf.js                [39m[1m[2m  0.70 kB[22m[1m[22m[2m Γöé gzip:   0.41 kB[22m
+[2mdist/[22m[36massets/tslib.es6-De9GV7Vy.js            [39m[1m[2m  0.77 kB[22m[1m[22m[2m Γöé gzip:   0.41 kB[22m
+[2mdist/[22m[36massets/index-JM-b0VUi.js                [39m[1m[2m  0.85 kB[22m[1m[22m[2m Γöé gzip:   0.50 kB[22m
+[2mdist/[22m[36massets/label-DIo5_dnO.js                [39m[1m[2m  0.88 kB[22m[1m[22m[2m Γöé gzip:   0.55 kB[22m
+[2mdist/[22m[36massets/alert-Bv-gVTdz.js                [39m[1m[2m  0.99 kB[22m[1m[22m[2m Γöé gzip:   0.53 kB[22m
+[2mdist/[22m[36massets/TypingAnimation-zCZD1uE_.js      [39m[1m[2m  1.16 kB[22m[1m[22m[2m Γöé gzip:   0.63 kB[22m
+[2mdist/[22m[36massets/NotFound-ByZFKTbc.js             [39m[1m[2m  1.20 kB[22m[1m[22m[2m Γöé gzip:   0.65 kB[22m
+[2mdist/[22m[36massets/IEEESOUSSBJRNY-zwom1Vmt.js       [39m[1m[2m  1.41 kB[22m[1m[22m[2m Γöé gzip:   0.72 kB[22m
+[2mdist/[22m[36massets/badge-DpAcXUm_.js                [39m[1m[2m  1.65 kB[22m[1m[22m[2m Γöé gzip:   0.61 kB[22m
+[2mdist/[22m[36massets/StudentAchievements-DHo5SpFe.js  [39m[1m[2m  2.94 kB[22m[1m[22m[2m Γöé gzip:   1.30 kB[22m
+[2mdist/[22m[36massets/UpcomingEvents-BUqtwrxN.js       [39m[1m[2m  2.97 kB[22m[1m[22m[2m Γöé gzip:   1.32 kB[22m
+[2mdist/[22m[36massets/IEEE-T46fOsIQ.js                 [39m[1m[2m  3.10 kB[22m[1m[22m[2m Γöé gzip:   1.48 kB[22m
+[2mdist/[22m[36massets/TeamMembers-D6uzFCax.js          [39m[1m[2m  3.20 kB[22m[1m[22m[2m Γöé gzip:   1.49 kB[22m
+[2mdist/[22m[36massets/IEEESOUSSIGHTSBG-DMVpAmVb.js     [39m[1m[2m  3.21 kB[22m[1m[22m[2m Γöé gzip:   1.35 kB[22m
+[2mdist/[22m[36massets/IEEESOUSPSSBC-C7glILiC.js        [39m[1m[2m  3.23 kB[22m[1m[22m[2m Γöé gzip:   1.30 kB[22m
+[2mdist/[22m[36massets/TeamAdvisory-B3w8Cm3a.js         [39m[1m[2m  3.30 kB[22m[1m[22m[2m Γöé gzip:   1.51 kB[22m
+[2mdist/[22m[36massets/BranchAwards-Li0sLpa-.js         [39m[1m[2m  3.42 kB[22m[1m[22m[2m Γöé gzip:   1.44 kB[22m
+[2mdist/[22m[36massets/DynamicLinkInput-2hMwRlXx.js     [39m[1m[2m  3.43 kB[22m[1m[22m[2m Γöé gzip:   1.20 kB[22m
+[2mdist/[22m[36massets/IEEEOUSSBWIE-DkDR7Tjh.js         [39m[1m[2m  3.51 kB[22m[1m[22m[2m Γöé gzip:   1.41 kB[22m
+[2mdist/[22m[36massets/IEEESOUSCSSBC-C6jchXVU.js        [39m[1m[2m  3.92 kB[22m[1m[22m[2m Γöé gzip:   1.50 kB[22m
+[2mdist/[22m[36massets/TeamCore-CL9PzTFB.js             [39m[1m[2m  3.97 kB[22m[1m[22m[2m Γöé gzip:   1.69 kB[22m
+[2mdist/[22m[36massets/IEEESOUSSB-KnjKj8lv.js           [39m[1m[2m  4.23 kB[22m[1m[22m[2m Γöé gzip:   1.73 kB[22m
+[2mdist/[22m[36massets/Newsletter-DZVgZ4Lc.js           [39m[1m[2m  4.27 kB[22m[1m[22m[2m Γöé gzip:   1.75 kB[22m
+[2mdist/[22m[36massets/AwardDetails-DsYcGrL3.js         [39m[1m[2m  4.28 kB[22m[1m[22m[2m Γöé gzip:   1.58 kB[22m
+[2mdist/[22m[36massets/Events-DVzt43oB.js               [39m[1m[2m  4.34 kB[22m[1m[22m[2m Γöé gzip:   1.71 kB[22m
+[2mdist/[22m[36massets/TeamFaculty-CyRQMu6R.js          [39m[1m[2m  4.48 kB[22m[1m[22m[2m Γöé gzip:   1.58 kB[22m
+[2mdist/[22m[36massets/Login-C_VUEufG.js                [39m[1m[2m  4.78 kB[22m[1m[22m[2m Γöé gzip:   1.82 kB[22m
+[2mdist/[22m[36massets/Authentication-B61DqOUM.js       [39m[1m[2m  4.81 kB[22m[1m[22m[2m Γöé gzip:   1.77 kB[22m
+[2mdist/[22m[36massets/Join-kvMJEiy9.js                 [39m[1m[2m  4.90 kB[22m[1m[22m[2m Γöé gzip:   1.75 kB[22m
+[2mdist/[22m[36massets/Contact-DCXXrY32.js              [39m[1m[2m  4.98 kB[22m[1m[22m[2m Γöé gzip:   1.88 kB[22m
+[2mdist/[22m[36massets/EventDetails-BK0OAXhG.js         [39m[1m[2m  5.17 kB[22m[1m[22m[2m Γöé gzip:   1.73 kB[22m
+[2mdist/[22m[36massets/MemberDetails-8RHK7uIW.js        [39m[1m[2m  5.17 kB[22m[1m[22m[2m Γöé gzip:   1.80 kB[22m
+[2mdist/[22m[36massets/separator-BaYF7CFL.js            [39m[1m[2m  5.32 kB[22m[1m[22m[2m Γöé gzip:   2.17 kB[22m
+[2mdist/[22m[36massets/IEEESOUSSBJRNYLoop-ZBwp4kyw.js   [39m[1m[2m  5.96 kB[22m[1m[22m[2m Γöé gzip:   2.45 kB[22m
+[2mdist/[22m[36massets/SIGs-B5r2lGaU.js                 [39m[1m[2m  6.09 kB[22m[1m[22m[2m Γöé gzip:   2.42 kB[22m
+[2mdist/[22m[36massets/TeamExecutive-CMuVeuzE.js        [39m[1m[2m  6.13 kB[22m[1m[22m[2m Γöé gzip:   2.37 kB[22m
+[2mdist/[22m[36massets/BlogList-BBgGjavw.js             [39m[1m[2m  7.35 kB[22m[1m[22m[2m Γöé gzip:   2.60 kB[22m
+[2mdist/[22m[36massets/BlogDetail-7EnGDf-L.js           [39m[1m[2m  7.43 kB[22m[1m[22m[2m Γöé gzip:   2.87 kB[22m
+[2mdist/[22m[36massets/WriteBlog-DLKN3beJ.js            [39m[1m[2m  7.72 kB[22m[1m[22m[2m Γöé gzip:   2.75 kB[22m
+[2mdist/[22m[36massets/JourneyDetails-5vplistG.js       [39m[1m[2m  7.77 kB[22m[1m[22m[2m Γöé gzip:   2.54 kB[22m
+[2mdist/[22m[36massets/FAQ-CWF52gQB.js                  [39m[1m[2m  9.50 kB[22m[1m[22m[2m Γöé gzip:   3.68 kB[22m
+[2mdist/[22m[36massets/Bylaws-DESCRhrB.js               [39m[1m[2m 10.05 kB[22m[1m[22m[2m Γöé gzip:   3.45 kB[22m
+[2mdist/[22m[36massets/Achievement-DZhzaZJf.js          [39m[1m[2m 11.71 kB[22m[1m[22m[2m Γöé gzip:   3.81 kB[22m
+[2mdist/[22m[36massets/SIGDetails-CSL1Zu90.js           [39m[1m[2m 19.45 kB[22m[1m[22m[2m Γöé gzip:   5.71 kB[22m
+[2mdist/[22m[36massets/Index-CW1zjxaJ.js                [39m[1m[2m 24.43 kB[22m[1m[22m[2m Γöé gzip:   7.18 kB[22m
+[2mdist/[22m[36massets/select-Ce-M-f5z.js               [39m[1m[2m 38.04 kB[22m[1m[22m[2m Γöé gzip:  13.28 kB[22m
+[2mdist/[22m[36massets/PageLayout-C3sll8jw.js           [39m[1m[2m 40.70 kB[22m[1m[22m[2m Γöé gzip:  13.22 kB[22m
+[2mdist/[22m[36massets/Admin-Cq3kCVCe.js                [39m[1m[2m112.80 kB[22m[1m[22m[2m Γöé gzip:  23.42 kB[22m
+[2mdist/[22m[36massets/proxy-qAtWPnum.js                [39m[1m[2m122.00 kB[22m[1m[22m[2m Γöé gzip:  39.83 kB[22m
+[2mdist/[22m[36massets/index-BZz_T_U_.js                [39m[1m[2m333.05 kB[22m[1m[22m[2m Γöé gzip: 108.26 kB[22m
+[2mdist/[22m[36massets/firebase-Zy9CuByt.js             [39m[1m[2m367.56 kB[22m[1m[22m[2m Γöé gzip: 113.94 kB[22m
+[32mΓ£ô built in 17.85s[39m

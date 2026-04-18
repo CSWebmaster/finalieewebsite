@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IEEE SOU SB</title>
+  <script type="text/javascript">
+    // Single Page App Redirect
+    // This script takes the current URL and converts the path and query
+    // string into just a query string, then redirects the browser
+    // to the new URL with only a query string and hash fragment
+    
+    var pathSegmentsToKeep = 0; // Adjust based on your deployment path
+    
+    var l = window.location;
+    l.replace(
+      l.protocol + '//' + l.hostname + (l.port ? ':' + l.port : '') +
+      l.pathname.split('/').slice(0, 1 + pathSegmentsToKeep).join('/') + '/?/' +
+      l.pathname.slice(1).split('/').slice(pathSegmentsToKeep).join('/').replace(/&/g, '~and~') +
+      (l.search ? '&' + l.search.slice(1).replace(/&/g, '~and~') : '') +
+      l.hash
+    );
+  </script>
+</head>
+<body>
+  <p>Redirecting to IEEE SOU SB home page...</p>
+</body>
+</html>

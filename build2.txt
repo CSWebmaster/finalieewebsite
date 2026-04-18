@@ -1,0 +1,27 @@
+﻿
+> vite_react_shadcn_ts@0.0.0 build
+> vite build
+
+cmd : 'vite' is not 
+recognized as an 
+internal or external 
+command,
+At line:1 char:1
++ cmd /c "npm run build" 
+2>&1 | Out-File 
+-FilePath build2.txt 
+-Encoding ...
++ ~~~~~~~~~~~~~~~~~~~~~~~
+~~~~
+    + CategoryInfo       
+       : NotSpecified:   
+  ('vite' is not r...t   
+ ernal command,:Strin    
+g) [], RemoteExcepti    
+on
+    + FullyQualifiedErro 
+   rId : NativeCommandE  
+  rror
+ 
+operable program or 
+batch file.
