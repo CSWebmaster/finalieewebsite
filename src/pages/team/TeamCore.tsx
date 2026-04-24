@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Search, Linkedin } from "lucide-react";
+import { Search } from "lucide-react";
+import LinkedInIcon from "@/components/LinkedInIcon";
 import PageLayout from "@/components/PageLayout";
 import { Input } from "@/components/ui/input";
 import { TypingAnimation } from "@/components/TypingAnimation";
@@ -39,8 +40,8 @@ export default function TeamCore() {
     async function fetchCoreMembers() {
       setLoading(true);
       try {
+        // ── Reverted to legacy collection: members ──
         const membersRef = collection(db, "members");
-        // Removed orderBy("displayOrder", "asc") to avoid composite index requirement
         const q = query(membersRef, where("type", "==", "core"));
         const querySnapshot = await getDocs(q);
 
@@ -110,9 +111,9 @@ export default function TeamCore() {
 
   return (
     <PageLayout showFooter>
-      <main className="pb-16 animate-fade-in bg-white dark:bg-[#0F172A]">
+      <main className="pt-0 pb-16 animate-fade-in bg-white dark:bg-[#0F172A]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-12 text-center">
+          <div className="mb-12 pt-8 text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-4 text-black dark:text-white">
               Core Committee
             </h1>
@@ -180,8 +181,9 @@ export default function TeamCore() {
                         <ImageLoader
                           src={member.image}
                           alt={member.name}
-                          containerClassName="w-32 h-32 mb-4"
-                          className="w-full h-full rounded-lg object-cover border-2 border-muted dark:border-gray-700"
+                          containerClassName="w-32 h-32 mb-4 flex items-center justify-center overflow-hidden rounded-lg"
+                          className="w-full h-full object-cover border-2 border-muted dark:border-gray-700"
+                          style={{ objectPosition: (member as any).objectPosition || 'center 20%' }}
                         />
                         <div className="flex flex-col items-center justify-center mb-2 min-h-[56px] w-full px-2">
                           <h3 className="font-semibold text-xl text-gray-900 dark:text-white line-clamp-2">
@@ -192,17 +194,10 @@ export default function TeamCore() {
                           <p className="text-sm text-gray-700 dark:text-gray-300 text-center font-medium">
                             {member.position}
                           </p>
-                          {member.linkedin && (
-                            <a
-                              href={member.linkedin}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-600 hover:text-white transition-colors"
-                              onClick={(e) => e.stopPropagation && e.stopPropagation()}
-                            >
-                              <Linkedin className="h-4 w-4" />
-                            </a>
-                          )}
+                          <LinkedInIcon
+                            href={member.linkedin}
+                            onClick={(e) => e.stopPropagation()}
+                          />
                         </div>
                         {(member.education || member.department) && (
                           <p className="text-xs text-muted-foreground dark:text-gray-400 mt-2">

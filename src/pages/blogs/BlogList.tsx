@@ -15,11 +15,13 @@ import { LazyImage } from "@/components/performance/LazyImage";
 const CATEGORY_COLORS: Record<string, string> = {
   blog: "bg-orange-100 text-orange-700 border-orange-200",
   article: "bg-blue-100 text-blue-700 border-blue-200",
+  research: "bg-purple-100 text-purple-700 border-purple-200",
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
   blog: "Blog",
   article: "Article",
+  research: "Research Paper",
 };
 
 interface Blog {
@@ -55,6 +57,7 @@ export default function BlogList() {
     const fetchBlogs = async () => {
       setLoading(true);
       try {
+        // ── Reverted to legacy collection: blogs ──
         const blogsRef = collection(db, "blogs");
         const q = query(blogsRef, orderBy("created_at", "desc"));
         const snapshot = await getDocs(q);
@@ -188,14 +191,22 @@ export default function BlogList() {
                       className="group flex flex-col bg-white dark:bg-[#111] rounded-2xl border border-border/40 overflow-hidden hover:shadow-xl hover:border-[#00629B]/30 transition-all duration-300"
                     >
                       {/* Image */}
-                      <div className="w-full bg-muted/10 flex items-center justify-center overflow-hidden" style={{ height: '200px' }}>
+                      <div className="w-full bg-muted/10 relative flex items-center justify-center overflow-hidden" style={{ height: '200px' }}>
                         {firstImage ? (
-                          <LazyImage
-                            src={firstImage}
-                            alt={blog.title}
-                            containerClassName="w-full h-full"
-                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                          />
+                          <>
+                            {/* Blurred background to fill the frame nicely */}
+                            <img 
+                              src={firstImage} 
+                              alt="" 
+                              className="absolute inset-0 w-full h-full object-cover blur-xl opacity-30 scale-110" 
+                            />
+                            <LazyImage
+                              src={firstImage}
+                              alt={blog.title}
+                              containerClassName="w-full h-full relative z-10 bg-transparent"
+                              className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
+                            />
+                          </>
                         ) : (
                           <div className="flex flex-col items-center justify-center text-muted-foreground/30 gap-2">
                             <BookOpen className="h-10 w-10" />

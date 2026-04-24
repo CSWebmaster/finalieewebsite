@@ -13,6 +13,8 @@ import { db } from "../firebase";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Pencil, Trash2, Eye, UserCircle } from "lucide-react";
+import { useAuth } from "../hooks/useAuth";
+import { submitContentChange } from "../lib/cms-service";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,14 +32,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface MemberPreviewListProps {
   onEdit: (member: any) => void;
-  onDelete: (id: string) => void;
   setSuccess: (message: string) => void;
   setError: (message: string) => void;
 }
 
 const MemberPreviewList: React.FC<MemberPreviewListProps> = ({
   onEdit,
-  onDelete,
   setSuccess,
   setError,
 }) => {
@@ -93,11 +93,10 @@ const MemberPreviewList: React.FC<MemberPreviewListProps> = ({
         );
         setMembers(sortedMembers);
         setLoading(false);
-        console.log("Fetched members:", sortedMembers.length);
       },
       (err) => {
         console.error("Error fetching members:", err);
-        setError(`Error fetching members: ${err.message}`);
+        setError(`CMS Access denied: ${err.message}`);
         setLoading(false);
       }
     );
@@ -106,16 +105,6 @@ const MemberPreviewList: React.FC<MemberPreviewListProps> = ({
     return () => unsubscribe();
   }, [activeType, setError]);
 
-  const handleDelete = async (memberId: string) => {
-    try {
-      await deleteDoc(doc(db, "members", memberId));
-      setSuccess("Member deleted successfully!");
-      setConfirmDelete(null);
-      // No need to fetch again - onSnapshot listener will update automatically
-    } catch (err: any) {
-      setError(`Error deleting member: ${err.message}`);
-    }
-  };
 
   const handleEdit = (member: any) => {
     onEdit(member);
@@ -149,6 +138,28 @@ const MemberPreviewList: React.FC<MemberPreviewListProps> = ({
   );
 
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+
+  const { userData, isWebmaster } = useAuth();
+  const handleDelete = async (member: any) => {
+    if (!userData) { setError("Auth required."); return; }
+    if (!window.confirm(`Delete member ${member.name}?`)) return;
+
+    try {
+      await submitContentChange(
+        userData.uid,
+        userData.name || "Unknown",
+        "members",
+        member,
+        member.id,
+        userData.email,
+        userData.role,
+        'delete'
+      );
+      setSuccess(isWebmaster ? "Member deleted!" : "Deletion request submitted!");
+    } catch (err: any) {
+      setError("Delete failed: " + err.message);
+    }
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
@@ -346,25 +357,13 @@ const MemberPreviewList: React.FC<MemberPreviewListProps> = ({
                     </button>
                     <button
                       onClick={(e) => {
-                        e.stopPropagation(); // Prevent navigation
-                        setConfirmDelete(member.id);
+                        e.stopPropagation();
+                        handleDelete(member);
                       }}
                       title="Delete"
                       className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
                     >
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                        />
-                      </svg>
+                      <Trash2 className="w-5 h-5" />
                     </button>
                   </div>
                 </div>
@@ -458,30 +457,7 @@ const MemberPreviewList: React.FC<MemberPreviewListProps> = ({
         </div>
       )}
 
-      {/* Delete Confirmation */}
-      {confirmDelete && (
-        <div className="fixed inset-0 bg-black bg-opacity-30 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-lg shadow-lg">
-            <h3 className="text-lg font-semibold mb-4">Confirm Deletion</h3>
-            <p>Are you sure you want to delete this member?</p>
-            <div className="flex justify-end gap-4 mt-6">
-              <button
-                onClick={() => setConfirmDelete(null)}
-                className="px-4 py-2 bg-gray-200 rounded"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleDelete(confirmDelete)}
-                className="px-4 py-2 bg-red-600 text-white rounded"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
         </div>
-      )}
-    </div>
   );
 };
 

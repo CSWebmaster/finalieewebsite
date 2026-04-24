@@ -27,8 +27,9 @@ export default function Awards() {
 
   useEffect(() => {
     const fetchAwards = async () => {
+      // ── Reverted to legacy collection: awards ──
       const awardsRef = collection(db, "awards");
-      const q = query(awardsRef, orderBy("date", "desc"));
+      const q = query(awardsRef, orderBy("year", "desc"));
       const snapshot = await getDocs(q);
       const data: FirestoreAward[] = snapshot.docs.map(doc => ({
         id: doc.id,
@@ -133,7 +134,7 @@ export default function Awards() {
                         <div className="p-5 card-content">
                           <h3 className="text-xl font-bold mb-2 line-clamp-1">{award.title}</h3>
                           <p className="text-sm text-muted-foreground mb-3">
-                            {award.year} • {award.type === "student" ? "Student" : "Branch"}
+                            {award.year} â€¢ {award.type === "student" ? "Student" : "Branch"}
                           </p>
                           <p className="text-sm mb-4 line-clamp-2 flex-1 text-left">{award.description}</p>
                           <Button size="sm" asChild className="action-btn">

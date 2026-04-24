@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import { collection, addDoc, updateDoc, doc } from 'firebase/firestore';
 import MultiImageInput from './MultiImageInput';
+import { useAuth } from "../hooks/useAuth";
+import { submitContentChange } from "../lib/cms-service";
 
 interface JourneyModalProps {
   journey?: any;
@@ -38,28 +40,46 @@ export default function JourneyModal({ journey, isOpen, onClose, onSave }: Journ
     }
   }, [journey, isOpen]);
 
+  const { userData } = useAuth();
+  const [loading, setLoading] = useState(false);
+
   const handleSubmit = async () => {
+    if (!userData) {
+      alert("Authentication required.");
+      return;
+    }
+
+    setLoading(true);
     const cleanImages = images.map(i => i.trim()).filter(i => i !== '');
     const journeyData = {
       title,
       description,
       imageUrl: cleanImages[0] || '',
       images: cleanImages,
-      order: parseInt(order.toString())
+      order: parseInt(order.toString()),
+      updatedAt: new Date().toISOString()
     };
 
     try {
-      if (journey?.id) {
-        // Update existing
-        await updateDoc(doc(db, 'journey', journey.id), journeyData);
-      } else {
-        // Create new
-        await addDoc(collection(db, 'journey'), journeyData);
-      }
-      onSave(journeyData);
+      await submitContentChange(
+        userData.uid,
+        userData.name || userData.displayName || "Unknown",
+        "journey",
+        journeyData,
+        journey?.id || null,
+        userData.email,
+        userData.role
+      );
+
+      const isDirect = userData.role === 'webmaster';
+      alert(isDirect ? "Journey updated successfully!" : "Journey update submitted for review!");
+      if (onSave) onSave(journeyData);
       onClose();
-    } catch (error) {
-      console.error('Error saving journey:', error);
+    } catch (error: any) {
+      console.error('Error submitting journey change:', error);
+      alert("Submission failed: " + error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -113,7 +133,7 @@ export default function JourneyModal({ journey, isOpen, onClose, onSave }: Journ
             onClick={handleSubmit}
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
           >
-            Save
+            {loading ? "Saving..." : (userData?.role === 'webmaster' ? 'Save' : 'Submit for Approval')}
           </button>
         </div>
       </div>

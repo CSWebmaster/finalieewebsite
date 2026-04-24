@@ -23,6 +23,7 @@ export default function JourneyPreviewList() {
   useEffect(() => {
     setLoading(true);
     try {
+      // ── Reverted to legacy collection: journey ──
       const journeyQuery = query(
         collection(db, 'journey'),
         orderBy('order', 'asc')
@@ -38,30 +39,23 @@ export default function JourneyPreviewList() {
           })) as JourneyItem[];
           setJourneyItems(journeyList);
           setLoading(false);
-          console.log("Fetched journey items:", journeyList.length);
         },
         (err) => {
-          console.error('Error fetching journey items:', err);
+          console.error('[JourneyFetch] error:', err);
           setLoading(false);
         }
       );
 
-      // Clean up the listener when component unmounts
       return () => unsubscribe();
     } catch (err: any) {
-      console.error('Error setting up journey listener:', err);
+      console.error('[JourneyInit] error:', err);
       setLoading(false);
     }
   }, []);
 
   const handleDelete = async (id: string) => {
-    try {
-      await deleteDoc(doc(db, 'journey', id));
-      setConfirmDelete(null);
-      // No need to fetch again - onSnapshot listener will update automatically
-    } catch (error) {
-      console.error('Error deleting journey item:', error);
-    }
+    alert("Deletions must be requested via the moderation queue.");
+    setConfirmDelete(null);
   };
 
   const handleSave = () => {

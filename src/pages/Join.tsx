@@ -1,6 +1,5 @@
 import React, { useState, useRef } from "react";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { db } from "../firebase";
+import { SHEETS_WEBHOOK_URL, SHEETS_SECRET } from "@/config/sheets";
 import PageLayout from "@/components/PageLayout";
 import { TypingAnimation } from "@/components/TypingAnimation";
 import { Button } from "@/components/ui/button";
@@ -15,8 +14,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { sendEmail } from "@/lib/sendEmail";
-import { saveToGoogleSheets } from "@/lib/googleSheets";
 import { useLatencyTracker } from "@/hooks/useLatencyTracker";
 
 export default function Join() {
@@ -46,53 +43,27 @@ export default function Join() {
 
     setIsLoading(true);
     try {
-      // 1. Save to Firestore (Blocking)
-      console.log("[Firestore] Attempting to save join application...");
-      await addDoc(collection(db, "ieee_applications"), {
-        name,
-        email,
-        phone,
-        enrollment,
-        college,
-        department,
-        semester,
-        academicYear,
-        reason,
-        createdAt: serverTimestamp(),
-        status: "pending",
-      });
-      console.log("[Firestore] Success: Join application saved.");
-
-      // 2. Send Email (Blocking)
-      await sendEmail({
-        name,
-        email,
-        phone,
-        page: "Join",
-        fields: {
-          "Enrollment Number": enrollment,
-          College: college,
-          Department: department,
-          Semester: semester,
-          "Academic Year": academicYear,
-          "Reason to Join": reason,
+      await fetch(SHEETS_WEBHOOK_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: {
+          "Content-Type": "application/json",
         },
-      });
-
-      // 3. Save to Google Sheets (Non-blocking)
-      saveToGoogleSheets({
-        type: "join",
-        name,
-        email,
-        phone,
-        enrollment,
-        college,
-        department,
-        semester,
-        academicYear,
-        reason
-      }, "Join_IEEE").catch(err => {
-        console.error("[GoogleSheets] Failure (Non-blocking):", err);
+        body: JSON.stringify({
+          secret: SHEETS_SECRET,
+          type: "Join IEEE",
+          values: {
+            name,
+            email,
+            phone,
+            enrollment,
+            college,
+            department,
+            semester,
+            academicYear,
+            reason
+          }
+        }),
       });
 
       toast.success("Application submitted! We'll contact you soon.");
@@ -100,9 +71,9 @@ export default function Join() {
       setDepartment("");
       setSemester("");
       setAcademicYear("");
-    } catch (err: unknown) {
-      console.error("[Firestore/Email] Critical failure:", err);
-      toast.error(err instanceof Error ? err.message : "Failed to submit application.");
+    } catch (err: any) {
+      console.error("[Submission] Failure:", err);
+      toast.error("Failed to submit application.");
     } finally {
       setIsLoading(false);
     }
@@ -199,7 +170,7 @@ export default function Join() {
                 />
               </div>
 
-              <Button type="submit" className="w-full" disabled={isLoading}>
+              <Button type="submit" className="w-full h-12" disabled={isLoading}>
                 {isLoading ? "Submitting…" : "Submit Application"}
               </Button>
             </form>

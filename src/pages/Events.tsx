@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Link, useSearchParams } from "react-router-dom";
 import CardSkeleton from "@/components/CardSkeleton";
 import ImageLoader from "@/components/ImageLoader";
+import { EventCard } from "@/components/EventCard";
 
 interface FirestoreEvent {
   id: string;
@@ -44,6 +45,7 @@ export default function Events() {
         return;
       }
       try {
+        // ── Reverted to legacy collection: events ──
         const eventsRef = collection(db, "events");
         const snapshot = await getDocs(eventsRef);
 
@@ -54,12 +56,16 @@ export default function Events() {
 
         // Sort by event.date descending (latest first)
         const sortedByDate = data.sort(
-          (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+          (a, b) => {
+            const timeA = a.date ? new Date(a.date).getTime() : 0;
+            const timeB = b.date ? new Date(b.date).getTime() : 0;
+            return timeB - timeA;
+          }
         );
 
         setEvents(sortedByDate);
       } catch (error: any) {
-        console.error("[Events] 🔥 Error fetching events:", {
+        console.error("[Events] ðŸ”¥ Error fetching events:", {
           code: error.code,
           message: error.message,
           stack: error.stack
@@ -173,38 +179,7 @@ export default function Events() {
               </div>
             ) : (
               filteredEvents.map((event) => (
-                <div
-                  key={event.id}
-                  className="glass flex flex-col rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 border border-gray-200 dark:border-gray-700 h-full"
-                >
-                  {/* Fixed aspect-ratio image container */}
-                  <div className="relative bg-slate-50 dark:bg-slate-900 border-b border-gray-200 dark:border-gray-700 w-full" style={{ aspectRatio: '4/3' }}>
-                    <ImageLoader 
-                      src={event.image}
-                      alt={event.name}
-                      containerClassName="absolute inset-0 w-full h-full p-2"
-                      className="absolute inset-0 w-full h-full object-contain transition-transform duration-300 hover:scale-105"
-                      loading="lazy"
-                    />
-                  </div>
-                  <div className="p-5 flex-1 flex flex-col">
-                    <h3 className="text-xl font-bold mb-2 line-clamp-1">{event.name}</h3>
-                    <p className="text-sm text-muted-foreground mb-3">
-                      {event.date} • {event.time}
-                    </p>
-                    <p className="text-sm mb-4 line-clamp-2 flex-1">{event.description}</p>
-                    {event.speakers && event.speakers.trim() !== "" && (
-                      <p className="text-sm text-muted-foreground mb-4">
-                        <span className="font-medium">Speakers:</span> {event.speakers}
-                      </p>
-                    )}
-                    <div className="mt-auto pt-2">
-                      <Button size="sm" asChild>
-                        <Link to={`/eventdetails/${event.id}`}>Learn More</Link>
-                      </Button>
-                    </div>
-                  </div>
-                </div>
+                <EventCard key={event.id} event={event as any} />
               ))
             )}
           </div>

@@ -113,7 +113,7 @@ export default function BranchAwards() {
                     key={award.id}
                     className="glass rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 border border-gray-200 dark:border-gray-700"
                   >
-                    {/* Fixed aspect-ratio image container — fully shows all images regardless of shape */}
+                    {/* Fixed aspect-ratio image container â€” fully shows all images regardless of shape */}
                     <div className="relative bg-slate-50 dark:bg-slate-900 border-b border-gray-200 dark:border-gray-700" style={{ aspectRatio: '4/3' }}>
                       <img loading="lazy"
                         src={award.image}

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
-import { Search, Linkedin } from "lucide-react";
+import { Search } from "lucide-react";
+import LinkedInIcon from "@/components/LinkedInIcon";
 import PageLayout from "@/components/PageLayout";
 import { TypingAnimation } from "@/components/TypingAnimation";
 import { db } from "@/firebase";
@@ -21,7 +22,11 @@ export default function TeamMembers() {
     const fetchMembers = async () => {
       setLoading(true);
       try {
-        const q = query(collection(db, "members"), where("type", "==", "member"));
+        // ── Reverted to legacy collection: members ──
+        const q = query(
+          collection(db, "members"),
+          where("type", "==", "member")
+        );
         const querySnapshot = await getDocs(q);
         const membersData: any[] = [];
         querySnapshot.forEach((doc) => {
@@ -106,21 +111,13 @@ export default function TeamMembers() {
                       alt={member.name}
                       containerClassName="w-32 h-32 mb-4"
                       className="w-full h-full rounded-lg object-cover border-2 border-muted dark:border-gray-700"
+                      style={{ objectPosition: (member as any).objectPosition || 'center 20%' }}
                     />
                     <div className="flex items-center justify-center mb-2">
                       <h3 className="font-semibold text-xl text-gray-900 dark:text-white">
                         {member.name}
                       </h3>
-                      {member.linkedin && (
-                        <a
-                          href={member.linkedin}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="ml-2 text-primary hover:text-primary/80 dark:text-primary-dark dark:hover:text-primary-dark/80"
-                        >
-                          <Linkedin className="h-5 w-5" />
-                        </a>
-                      )}
+                      <LinkedInIcon href={member.linkedin} />
                     </div>
                     <div className="flex-grow">
                       <p className="text-sm mb-1 text-gray-700 dark:text-gray-300">

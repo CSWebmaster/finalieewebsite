@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, Fragment } from "react";
 import { useParams, Link } from "react-router-dom";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../firebase";
@@ -27,10 +27,10 @@ interface Blog {
   image?: string;
   githubLinks?: string[];
   youtubeLinks?: string[];
+  imagePositions?: number[];
   created_at: any;
 }
 
-/* ── Image Marquee Component ── */
 function ImageMarquee({ images }: { images: string[] }) {
   const [paused, setPaused] = useState(false);
 
@@ -38,53 +38,138 @@ function ImageMarquee({ images }: { images: string[] }) {
 
   if (images.length === 1) {
     return (
-      <div className="w-full flex items-center justify-center bg-muted/10 rounded-xl overflow-hidden mb-8" style={{ maxHeight: '400px' }}>
+      <div className="w-full flex items-center justify-center bg-muted/10 rounded-3xl overflow-hidden mb-12 shadow-inner group" style={{ maxHeight: '500px' }}>
         <img
           src={images[0]}
           alt="Blog cover"
-          className="w-full h-full object-contain"
-          style={{ maxHeight: '400px' }}
+          className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105"
+          style={{ maxHeight: '500px' }}
           loading="lazy"
         />
       </div>
     );
   }
 
-  // Duplicate for seamless loop
   const doubled = [...images, ...images];
 
   return (
     <div
-      className="overflow-hidden rounded-xl mb-8 bg-muted/10 border border-border/40"
+      className="overflow-hidden rounded-3xl mb-12 bg-muted/5 border border-border/20 shadow-sm"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
       <div
-        className="flex gap-4 py-3 px-2"
+        className="flex gap-6 py-4 px-3"
         style={{
-          animation: paused ? 'none' : 'marqueeScroll 20s linear infinite',
+          animation: paused ? 'none' : 'marqueeScroll 30s linear infinite',
           width: 'max-content',
         }}
       >
         {doubled.map((src, i) => (
           <div
             key={i}
-            className="flex-shrink-0 rounded-lg overflow-hidden bg-muted/20 flex items-center justify-center border border-border/30"
-            style={{ width: '280px', height: '200px' }}
+            className="flex-shrink-0 rounded-2xl overflow-hidden bg-white dark:bg-slate-800 flex items-center justify-center border border-border/10 shadow-lg"
+            style={{ width: '320px', height: '220px' }}
           >
             <img
               src={src}
-              alt={`Image ${(i % images.length) + 1}`}
-              className="w-full h-full object-contain"
+              alt={`Gallery image`}
+              className="w-full h-full object-cover hover:scale-110 transition-transform duration-500"
               loading="lazy"
-              onError={(e) => { e.currentTarget.style.display = 'none'; }}
             />
           </div>
         ))}
       </div>
-      <p className="text-xs text-center text-muted-foreground pb-2">
-        {images.length} images · {paused ? 'Paused' : 'Hover to pause'}
-      </p>
+      <div className="flex items-center justify-center gap-2 pb-3 opacity-60">
+        <div className="h-1 w-1 rounded-full bg-primary" />
+        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground mr-1">
+          {images.length} Images in Gallery
+        </p>
+        <div className="h-1 w-1 rounded-full bg-primary" />
+      </div>
+    </div>
+  );
+}
+
+/* ── Smart Content Component ── */
+function SmartContent({ text, images, imagePositions }: { text: string; images: string[]; imagePositions?: number[] }) {
+  if (!text) return null;
+
+  // Pattern for URLs
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+
+  // Split by double newlines for paragraphs
+  const paragraphs = text.split(/\n\s*\n/).filter(p => p.trim().length > 0);
+  
+  // We'll interleave images every 2 paragraphs if not specified
+  let currentImgIdx = 1; // Start from second image if marquee used first
+
+  return (
+    <div className="space-y-8">
+      {paragraphs.map((para, idx) => {
+        // Detect links and wrap them
+        const parts = para.split(urlRegex);
+        
+        const renderedPara = (
+          <div 
+            key={`p-${idx}`} 
+            className="animate-in fade-in slide-in-from-bottom-6 duration-700 delay-[200ms] fill-mode-both"
+            style={{ animationDelay: `${200 + (idx * 100)}ms` }}
+          >
+            <p className={`text-slate-700 dark:text-slate-300 text-lg md:text-xl leading-[1.85] font-normal tracking-tight 
+              ${idx === 0 ? "first-letter:text-5xl first-letter:font-bold first-letter:text-primary first-letter:mr-3 first-letter:float-left first-letter:mt-1" : ""}`}>
+              {parts.map((part, pIdx) => {
+                if (part.match(urlRegex)) {
+                  return (
+                    <a 
+                      key={pIdx} 
+                      href={part} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-600 dark:text-blue-400 font-semibold underline underline-offset-4 decoration-current/30 hover:decoration-current transition-all"
+                    >
+                      {part.replace(/^https?:\/\//, '').split('/')[0]}...
+                    </a>
+                  );
+                }
+                return part;
+              })}
+            </p>
+          </div>
+        );
+
+        // Interleave Image Logic
+        let shouldShowImage = false;
+        if (imagePositions && imagePositions.length > 0) {
+          // If positions are specified, show if current index matches a position
+          // (index + 1 because users think in 1-based indices usually, but I'll stick to 0-based if they enter 0)
+          shouldShowImage = imagePositions.includes(idx) && currentImgIdx < images.length;
+        } else {
+          // Fallback to auto-distribution
+          shouldShowImage = idx > 0 && idx % 2 === 0 && currentImgIdx < images.length;
+        }
+        const InterleavedImg = shouldShowImage ? (
+           <div key={`img-${idx}`} className="my-12 animate-in zoom-in-95 fade-in duration-1000">
+             <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-blue-500/5 group border border-border/10">
+               <img 
+                 src={images[currentImgIdx++]} 
+                 alt="Article visual" 
+                 className="w-full h-auto object-cover transition-transform duration-1000 group-hover:scale-105"
+               />
+               <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-6">
+                 <p className="text-white text-xs font-bold uppercase tracking-widest">Enhanced Insight</p>
+               </div>
+             </div>
+           </div>
+        ) : null;
+
+        return (
+          <Fragment key={idx}>
+            {renderedPara}
+            {InterleavedImg}
+          </Fragment>
+        );
+      })}
     </div>
   );
 }
@@ -98,6 +183,7 @@ export default function BlogDetail() {
     if (!id) return;
     const fetchBlog = async () => {
       try {
+        // ── Reverted to legacy collection: blogs ──
         const docRef = doc(db, "blogs", id);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists()) {
@@ -216,15 +302,12 @@ export default function BlogDetail() {
           {/* Image Marquee (full-width, no cropping) */}
           {images.length > 0 && <ImageMarquee images={images} />}
 
-          {/* Content Container - Systematic & Organized */}
-          <div className="max-w-4xl mx-auto mb-16 animate-in fade-in duration-1000 delay-300 fill-mode-both">
-            <div className="relative bg-card/30 border border-border/40 rounded-3xl p-8 md:p-12 shadow-sm backdrop-blur-[2px]">
-              {/* Decorative side accent for "systematic" look */}
-              <div className="absolute left-0 top-12 bottom-12 w-1 bg-gradient-to-b from-transparent via-[#00629B]/20 to-transparent"></div>
+          <div className="max-w-4xl mx-auto mb-16 px-2">
+            <div className="relative py-4">
+              {/* Decorative accent */}
+              <div className="absolute -left-6 top-0 bottom-0 w-1 bg-gradient-to-b from-primary/50 to-transparent rounded-full hidden md:block"></div>
               
-              <div className="prose dark:prose-invert prose-blue max-w-none text-left text-lg md:text-xl leading-relaxed text-slate-700 dark:text-slate-300 whitespace-pre-wrap">
-                {description}
-              </div>
+              <SmartContent text={description} images={images} imagePositions={blog.imagePositions} />
             </div>
           </div>
 

@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { collection, addDoc, doc, updateDoc, serverTimestamp } from "firebase/firestore";
-import { db } from "../firebase";
+import { serverTimestamp } from "firebase/firestore";
 import MultiImageInput from "./MultiImageInput";
+import { useAuth } from "../hooks/useAuth";
+import { submitContentChange } from "../lib/cms-service";
 
 interface EventModalProps {
   isOpen: boolean;
@@ -12,6 +13,7 @@ interface EventModalProps {
 }
 
 const EventModal: React.FC<EventModalProps> = ({ isOpen, onClose, event, setSuccess, setError }) => {
+  const { userData } = useAuth();
   const [loading, setLoading] = useState<boolean>(false);
   const [eventName, setEventName] = useState<string>("");
   const [eventDate, setEventDate] = useState<string>("");
@@ -24,6 +26,9 @@ const EventModal: React.FC<EventModalProps> = ({ isOpen, onClose, event, setSucc
   const [eventYear, setEventYear] = useState<number>(new Date().getFullYear());
   const [eventLearnMore, setEventLearnMore] = useState<string>("");
   const [isUpcoming, setIsUpcoming] = useState<boolean>(false);
+  const [registrationEnabled, setRegistrationEnabled] = useState<boolean>(false);
+  const [registrationFormId, setRegistrationFormId] = useState<string>("");
+  const [registrationLink, setRegistrationLink] = useState<string>("");
 
   useEffect(() => {
     if (event) {
@@ -45,6 +50,9 @@ const EventModal: React.FC<EventModalProps> = ({ isOpen, onClose, event, setSucc
       setEventYear(event.year || new Date().getFullYear());
       setEventLearnMore(event.learnMore || "");
       setIsUpcoming(event.isUpcoming || false);
+      setRegistrationEnabled(event.registrationEnabled || false);
+      setRegistrationFormId(event.registrationFormId || "");
+      setRegistrationLink(event.registrationLink || "");
     } else {
       resetEventForm();
     }
@@ -62,6 +70,9 @@ const EventModal: React.FC<EventModalProps> = ({ isOpen, onClose, event, setSucc
     setEventYear(new Date().getFullYear());
     setEventLearnMore("");
     setIsUpcoming(false);
+    setRegistrationEnabled(false);
+    setRegistrationFormId("");
+    setRegistrationLink("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -87,18 +98,26 @@ const EventModal: React.FC<EventModalProps> = ({ isOpen, onClose, event, setSucc
         year: yearFromDate,
         learnMore: eventLearnMore,
         isUpcoming: isUpcoming,
+        registrationEnabled: registrationEnabled,
+        registrationFormId: registrationFormId,
+        registrationLink: registrationLink,
         ...(event ? {} : { createdAt: serverTimestamp() }),
         updatedAt: serverTimestamp(),
       };
 
-      if (event?.id) {
-        await updateDoc(doc(db, "events", event.id), eventData);
-        setSuccess("Event updated successfully!");
-      } else {
-        await addDoc(collection(db, "events"), eventData);
-        setSuccess("Event added successfully!");
-      }
+      if (!userData) throw new Error("Authentication required.");
 
+      await submitContentChange(
+        userData.uid,
+        userData.name || userData.displayName || "Unknown",
+        "events",
+        eventData,
+        event?.id || null,
+        userData.email,
+        userData.role
+      );
+
+      setSuccess(event ? "Update request submitted for approval!" : "New event submitted for approval!");
       resetEventForm();
       onClose();
     } catch (err: any) {
@@ -149,6 +168,50 @@ const EventModal: React.FC<EventModalProps> = ({ isOpen, onClose, event, setSucc
               <label htmlFor="isUpcoming" className="block text-gray-700 font-medium cursor-pointer">
                 Mark as Upcoming Event
               </label>
+            </div>
+
+            {/* Registration System */}
+            <div className="mb-4 p-4 bg-blue-50/50 border border-blue-100 rounded-xl space-y-3">
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="regEnabled"
+                  className="w-4 h-4 accent-blue-600 cursor-pointer"
+                  checked={registrationEnabled}
+                  onChange={(e) => setRegistrationEnabled(e.target.checked)}
+                />
+                <label htmlFor="regEnabled" className="block text-gray-700 font-bold cursor-pointer text-sm">
+                  Enable Event Registration
+                </label>
+              </div>
+
+              {registrationEnabled && (
+                <div className="animate-in slide-in-from-top-1 duration-200">
+                  <label className="block text-gray-600 text-xs font-semibold mb-1 uppercase tracking-wider">Registration Form ID (Optional)</label>
+                  <input
+                    type="text"
+                    className="w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="e.g., workshop-registration-2026"
+                    value={registrationFormId}
+                    onChange={(e) => setRegistrationFormId(e.target.value)}
+                  />
+                  <p className="text-[10px] text-blue-500 mt-1">If left blank, a default registration form will be used.</p>
+                </div>
+              )}
+
+              {registrationEnabled && (
+                <div className="animate-in slide-in-from-top-1 duration-200 delay-75">
+                  <label className="block text-gray-600 text-xs font-semibold mb-1 uppercase tracking-wider">External Registration Link (Optional)</label>
+                  <input
+                    type="url"
+                    className="w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
+                    placeholder="https://forms.gle/..."
+                    value={registrationLink}
+                    onChange={(e) => setRegistrationLink(e.target.value)}
+                  />
+                  <p className="text-[10px] text-gray-400 mt-1">If provided, users will be redirected to this link for registration.</p>
+                </div>
+              )}
             </div>
 
             {/* Category — TASK 16 */}
@@ -271,7 +334,7 @@ const EventModal: React.FC<EventModalProps> = ({ isOpen, onClose, event, setSucc
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 disabled={loading}
               >
-                {loading ? "Saving..." : (event ? "Update Event" : "Save Event")}
+                {loading ? "Submitting..." : (event ? "Propose Update" : "Submit for Approval")}
               </button>
             </div>
           </form>

@@ -1,6 +1,8 @@
 import { initializeApp, getApps } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getFunctions } from "firebase/functions";
+import { getStorage } from "firebase/storage";
 
 // ─── Firebase configuration ───────────────────────────────────────────────────
 // All VITE_FIREBASE_* vars must be set in:
@@ -58,9 +60,10 @@ const app = (() => {
 })();
 
 // ─── Service exports ──────────────────────────────────────────────────────────
-export const db      = app ? getFirestore(app) : (null as any);
-export const auth    = app ? getAuth(app)      : (null as any);
-export const storage = null; // Uncomment and add getStorage(app) if you use Storage
+export const db        = app ? getFirestore(app) : (null as any);
+export const auth      = app ? getAuth(app)      : (null as any);
+export const functions = app ? getFunctions(app) : (null as any);
+export const storage   = app ? getStorage(app)   : (null as any);
 
 // Analytics — lazy, browser-only, won't crash if blocked by adblockers
 export let analytics: any = null;
@@ -74,4 +77,4 @@ if (app && typeof window !== "undefined" && firebaseConfig.measurementId) {
     .catch(() => { /* silently ignore — adblocker or unsupported env */ });
 }
 
-export default { auth, db, analytics, storage };
+export default { auth, db, analytics, storage, functions };

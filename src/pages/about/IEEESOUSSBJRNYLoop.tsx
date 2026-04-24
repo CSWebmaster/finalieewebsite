@@ -256,7 +256,7 @@ export default function IEEESOUSSBJRNYLoop() {
 
           <div className="flex flex-col items-center gap-2">
             <p className="text-[9px] text-muted-foreground animate-pulse tracking-[0.6em] uppercase font-black opacity-40">
-              Scroll Left • Scroll Right
+              Scroll Left â€¢ Scroll Right
             </p>
             <div className="flex items-center gap-6">
                <div className="h-[1px] w-12 bg-gradient-to-r from-transparent to-primary/30" />

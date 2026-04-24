@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { collection, addDoc, doc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { serverTimestamp } from "firebase/firestore";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { db, storage } from "../firebase";
+import { storage } from "../firebase";
 import MultiImageInput from "./MultiImageInput";
+import { useAuth } from "../hooks/useAuth";
+import { submitContentChange } from "../lib/cms-service";
 
 interface AwardModalProps {
   isOpen: boolean;
@@ -13,6 +15,7 @@ interface AwardModalProps {
 }
 
 const AwardModal: React.FC<AwardModalProps> = ({ isOpen, onClose, award, setSuccess, setError }) => {
+  const { userData } = useAuth();
   const [loading, setLoading] = useState<boolean>(false);
   const [awardType, setAwardType] = useState<string>("branch");
   const [newsletterType, setNewsletterType] = useState<string>("general");
@@ -122,16 +125,19 @@ const AwardModal: React.FC<AwardModalProps> = ({ isOpen, onClose, award, setSucc
         awardData.newsletterType = newsletterType;
       }
 
-      if (award?.id) {
-        // Update existing document
-        await updateDoc(doc(db, "awards", award.id), awardData);
-        setSuccess("Award updated successfully!");
-      } else {
-        // Add new document
-        await addDoc(collection(db, "awards"), awardData);
-        setSuccess("Award added successfully!");
-      }
+      if (!userData) throw new Error("Authentication required.");
 
+      await submitContentChange(
+        userData.uid,
+        userData.name || userData.displayName || "Unknown",
+        "awards",
+        awardData,
+        award?.id || null,
+        userData.email,
+        userData.role
+      );
+
+      setSuccess(award ? "Update request submitted!" : "New achievement request submitted!");
       resetAwardForm();
       onClose();
     } catch (err: any) {
@@ -296,7 +302,7 @@ const AwardModal: React.FC<AwardModalProps> = ({ isOpen, onClose, award, setSucc
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 disabled={loading}
               >
-                {loading ? "Saving..." : (award ? "Update Award" : "Save Award")}
+                {loading ? "Saving..." : (userData.role === 'webmaster' ? (award ? "Update Award" : "Save Award") : (award ? "Propose Update" : "Submit for Approval"))}
               </button>
             </div>
           </form>

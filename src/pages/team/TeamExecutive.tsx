@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Search, Linkedin, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight } from "lucide-react";
+import LinkedInIcon from "@/components/LinkedInIcon";
 import PageLayout from "@/components/PageLayout";
 import { Input } from "@/components/ui/input";
 import { TypingAnimation } from "@/components/TypingAnimation";
@@ -8,7 +9,7 @@ import { collection, query, where, getDocs } from "firebase/firestore";
 import { Skeleton } from "@/components/ui/skeleton";
 import ImageLoader from "@/components/ImageLoader";
 
-const YEARS = Array.from({ length: 5 }, (_, i) => 2022 + i); // [2022 … 2026]
+const YEARS = Array.from({ length: 10 }, (_, i) => 2017 + i); // [2017 â€¦ 2026]
 
 const SOCIETY_TITLES: Record<string, string> = {
   SB: "Student Branch",
@@ -32,13 +33,13 @@ export default function TeamExecutive() {
   const [executiveMembers, setExecutiveMembers] = useState<Record<string, any[]>>({});
   const [loading, setLoading] = useState(true);
 
-  // ── fetch members whenever selectedYear changes ──────────────────────────
+  // â”€â”€ fetch members whenever selectedYear changes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   useEffect(() => {
     async function fetchExecutiveMembers() {
       setLoading(true);
       try {
+        // ── Reverted to legacy collection: members ──
         const membersRef = collection(db, "members");
-        // Removing `where("year", "==", selectedYear)` from query to bypass Firebase composite index
         const q = query(
           membersRef,
           where("type", "==", "executive")
@@ -81,7 +82,7 @@ export default function TeamExecutive() {
     fetchExecutiveMembers();
   }, [selectedYear]);
 
-  // ── helpers ──────────────────────────────────────────────────────────────
+  // â”€â”€ helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const filterMembers = (members: any[]) =>
     members.filter(
       (m) =>
@@ -94,7 +95,7 @@ export default function TeamExecutive() {
       (a, b) => (POSITION_ORDER[a.position] ?? 999) - (POSITION_ORDER[b.position] ?? 999)
     );
 
-  // ── carousel helpers ─────────────────────────────────────────────────────
+  // â”€â”€ carousel helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   const currentIdx = YEARS.indexOf(selectedYear);
   const canPrev = currentIdx > 0;
   const canNext = currentIdx < YEARS.length - 1;
@@ -102,7 +103,7 @@ export default function TeamExecutive() {
   const prev = () => canPrev && setSelectedYear(YEARS[currentIdx - 1]);
   const next = () => canNext && setSelectedYear(YEARS[currentIdx + 1]);
 
-  // ── render ───────────────────────────────────────────────────────────────
+  // â”€â”€ render â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   return (
     <PageLayout showFooter>
       <main className="pb-16">
@@ -118,7 +119,7 @@ export default function TeamExecutive() {
             </p>
           </div>
 
-          {/* ── Year Carousel ── */}
+          {/* â”€â”€ Year Carousel â”€â”€ */}
           <div className="flex items-center justify-center gap-4 mb-10 w-full overflow-hidden">
             {/* Left arrow */}
             <button
@@ -262,7 +263,7 @@ export default function TeamExecutive() {
                             style={{
                               backgroundImage: `url(${member.image})`,
                               backgroundSize: 'cover',
-                              backgroundPosition: 'center',
+                              backgroundPosition: member.objectPosition || 'center 20%',
                               filter: 'blur(22px)',
                               transform: 'translateX(-50%) scale(1.3)',
                             }}
@@ -277,6 +278,7 @@ export default function TeamExecutive() {
                             alt={member.name}
                             containerClassName="w-28 h-28 mb-4"
                             className="w-full h-full rounded-xl object-cover border-2 border-white/60 dark:border-gray-600 shadow-md"
+                            style={{ objectPosition: member.objectPosition || 'center 20%' }}
                           />
                           <div className="flex flex-col items-center justify-center mb-2 min-h-[48px] w-full px-2">
                             <h3 className="font-bold text-base text-gray-900 dark:text-white line-clamp-2">
@@ -287,17 +289,10 @@ export default function TeamExecutive() {
                             <p className="text-xs text-gray-600 dark:text-gray-300 text-center font-semibold tracking-wide">
                               {member.position}
                             </p>
-                            {member.linkedin && (
-                              <a
-                                href={member.linkedin}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-white/70 dark:bg-blue-900/40 text-blue-600 hover:bg-blue-600 hover:text-white transition-colors shadow-sm border border-blue-100 dark:border-blue-800"
-                                onClick={(e) => e.stopPropagation && e.stopPropagation()}
-                              >
-                                <Linkedin className="h-3.5 w-3.5" />
-                              </a>
-                            )}
+                            <LinkedInIcon
+                              href={member.linkedin}
+                              onClick={(e) => e.stopPropagation()}
+                            />
                           </div>
                           {(member.education || member.department) && (
                             <p className="text-[11px] text-muted-foreground dark:text-gray-400 mt-2 line-clamp-1">

@@ -3,6 +3,8 @@ import { collection, getDocs, deleteDoc, doc, updateDoc, query, orderBy, onSnaps
 import { db } from "../firebase";
 import { BLOG_CATEGORIES } from "../types/blog";
 import { Pencil, Trash2, BookOpen, Github, Youtube, Image as ImageIcon, CheckCircle, XCircle } from "lucide-react";
+import { useAuth } from "../hooks/useAuth";
+import { submitContentChange } from "../lib/cms-service";
 
 interface BlogPreviewListProps {
   onEdit: (blog: any) => void;
@@ -24,11 +26,36 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 const BlogPreviewList: React.FC<BlogPreviewListProps> = ({ onEdit, setSuccess, setError }) => {
+  const { userData, isWebmaster } = useAuth();
   const [blogs, setBlogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const handleDelete = async (blog: any) => {
+    if (!userData) return;
+    if (!window.confirm(`Delete "${blog.title}"?`)) return;
+    try {
+      await submitContentChange(
+        userData.uid,
+        userData.name || "Unknown",
+        "blogs",
+        blog,
+        blog.id,
+        userData.email,
+        userData.role,
+        'delete'
+      );
+      setSuccess(isWebmaster ? "Blog deleted!" : "Deletion request sent!");
+    } catch (err: any) {
+      setError("Delete failed: " + err.message);
+    }
+  };
+
   useEffect(() => {
-    const q = query(collection(db, "blogs"), orderBy("created_at", "desc"));
+    // ── Reverted to legacy collection: blogs ──
+    const q = query(
+      collection(db, "blogs"), 
+      orderBy("created_at", "desc")
+    );
     const unsub = onSnapshot(
       q,
       (snap) => {
@@ -36,39 +63,19 @@ const BlogPreviewList: React.FC<BlogPreviewListProps> = ({ onEdit, setSuccess, s
         setLoading(false);
       },
       (err) => {
-        setError("Failed to load blogs: " + err.message);
+        setError("CMS Sync Error: " + err.message);
         setLoading(false);
       }
     );
     return unsub;
   }, []);
 
-  const handleDelete = async (id: string, title: string) => {
-    if (!confirm(`Delete "${title}"? This cannot be undone.`)) return;
-    try {
-      await deleteDoc(doc(db, "blogs", id));
-      setSuccess("Blog deleted.");
-    } catch (err: any) {
-      setError("Delete failed: " + err.message);
-    }
-  };
-
-  const handleStatusChange = async (id: string, title: string, newStatus: string) => {
-    if (!confirm(`Mark "${title}" as ${newStatus}?`)) return;
-    try {
-      await updateDoc(doc(db, "blogs", id), { status: newStatus });
-      setSuccess(`Blog marked as ${newStatus}.`);
-    } catch (err: any) {
-      setError(`Status update failed: ` + err.message);
-    }
-  };
-
   const getCategoryLabel = (cat: string) => {
     return BLOG_CATEGORIES.find((c) => c.value === cat)?.label ?? cat ?? "Article";
   };
 
   const formatDate = (ts: any) => {
-    if (!ts) return "—";
+    if (!ts) return "â€”";
     const d = ts.toDate ? ts.toDate() : new Date(ts);
     return d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
   };
@@ -160,28 +167,7 @@ const BlogPreviewList: React.FC<BlogPreviewListProps> = ({ onEdit, setSuccess, s
               </div>
             </div>
 
-            {/* Actions */}
             <div className="flex flex-col gap-1 flex-shrink-0 items-end">
-              <div className="flex gap-1">
-                {status !== "approved" && (
-                  <button
-                    onClick={() => handleStatusChange(blog.id, blog.title, "approved")}
-                    className="p-2 text-green-500 hover:bg-green-50 rounded-lg transition-colors"
-                    title="Approve"
-                  >
-                    <CheckCircle className="h-4 w-4" />
-                  </button>
-                )}
-                {status !== "rejected" && (
-                  <button
-                    onClick={() => handleStatusChange(blog.id, blog.title, "rejected")}
-                    className="p-2 text-orange-500 hover:bg-orange-50 rounded-lg transition-colors"
-                    title="Reject"
-                  >
-                    <XCircle className="h-4 w-4" />
-                  </button>
-                )}
-              </div>
               <div className="flex gap-1 mt-auto">
                 <button
                   onClick={() => onEdit(blog)}
@@ -191,8 +177,8 @@ const BlogPreviewList: React.FC<BlogPreviewListProps> = ({ onEdit, setSuccess, s
                   <Pencil className="h-4 w-4" />
                 </button>
                 <button
-                  onClick={() => handleDelete(blog.id, blog.title)}
-                  className="p-2 text-red-400 hover:bg-red-50 rounded-lg transition-colors"
+                  onClick={() => handleDelete(blog)}
+                  className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                   title="Delete"
                 >
                   <Trash2 className="h-4 w-4" />

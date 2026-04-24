@@ -171,7 +171,7 @@ export default function JourneyDetails() {
           visible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
         }`}
       >
-        {/* ── TOP: breadcrumb + badge + title ── */}
+        {/* â”€â”€ TOP: breadcrumb + badge + title â”€â”€ */}
         <div className="flex-shrink-0 mb-3 bg-card border rounded-2xl p-4 md:p-6 shadow-sm">
           {/* Breadcrumb */}
           <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3 flex-wrap">
@@ -200,7 +200,7 @@ export default function JourneyDetails() {
           </h1>
         </div>
 
-        {/* ── MIDDLE: image slideshow & description ── */}
+        {/* â”€â”€ MIDDLE: image slideshow & description â”€â”€ */}
         <div className="flex-col gap-4">
           {/* Slideshow container */}
           <div className="relative rounded-2xl overflow-hidden border shadow-lg w-full h-[350px] sm:h-[450px] md:h-[500px] lg:h-[600px] bg-card mb-4 flex-shrink-0">
@@ -278,7 +278,7 @@ export default function JourneyDetails() {
             )}
           </div>
 
-          {/* ── Description card ── */}
+          {/* â”€â”€ Description card â”€â”€ */}
           {currentSlide.description && (
             <div
               className="flex-shrink-0 bg-card border rounded-2xl p-6 md:p-8 shadow-sm transition-opacity duration-300 ease-in-out mt-2"

@@ -80,10 +80,10 @@ const UserModal: React.FC<UserModalProps> = ({
         email: formData.email,
         enrollment_number: enrollment,
         role: formData.role,
-        password: formData.password, // Added password field
       };
 
-      // Document ID is the email address
+      // Document ID is preferred to be UID. 
+      // For now, removing the password and keeping email as ID until Cloud Functions are deployed.
       const docRef = doc(db, "users", formData.email.toLowerCase());
       
       if (user) {
@@ -131,17 +131,6 @@ const UserModal: React.FC<UserModalProps> = ({
               placeholder="john@example.com"
               required
               disabled={!!user} // Email is the ID, so it shouldn't be changed after creation
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              placeholder="••••••••"
-              required={!user}
             />
           </div>
           <div className="space-y-2">

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { TypingAnimation } from "@/components/TypingAnimation";
+import { EventCard } from "@/components/EventCard";
 
 interface Event {
   id: string;
@@ -24,8 +25,10 @@ export default function UpcomingEvents() {
 
   useEffect(() => {
     const fetchEvents = async () => {
-      const eventsRef = collection(db, "events");
-      const snapshot = await getDocs(eventsRef);
+      try {
+        // ── Reverted to legacy collection: events ──
+        const eventsRef = collection(db, "events");
+        const snapshot = await getDocs(eventsRef);
       const data: Event[] = snapshot.docs.map((doc) => ({
         id: doc.id,
         ...doc.data(),
@@ -78,31 +81,7 @@ export default function UpcomingEvents() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredEvents.map((event) => (
-              <div
-                key={event.id}
-                className="glass flex flex-col rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1"
-              >
-                <div className="image-container bg-gray-100 dark:bg-gray-800">
-                  <img loading="lazy"
-                    src={event.image}
-                    alt={event.name}
-                    className="transition-transform duration-300 hover:scale-105"
-                  />
-                </div>
-                <div className="p-5 card-content">
-                  <h3 className="text-xl font-bold mb-2 line-clamp-1">{event.name}</h3>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    {event.date} • {event.time}
-                  </p>
-                  <p className="text-sm mb-4 line-clamp-2">{event.description}</p>
-                  <p className="text-sm text-muted-foreground mb-4 flex-1">
-                    <span className="font-medium">Speakers:</span> {event.speakers}
-                  </p>
-                  <Button size="sm" asChild className="action-btn">
-                    <Link to={`/eventdetails/${event.id}`}>Read More</Link>
-                  </Button>
-                </div>
-              </div>
+              <EventCard key={event.id} event={event as any} />
             ))}
           </div>
         </div>

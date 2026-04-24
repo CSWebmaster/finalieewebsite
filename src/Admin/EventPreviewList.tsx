@@ -10,17 +10,18 @@ import {
   where
 } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "../hooks/useAuth";
+import { submitContentChange } from "../lib/cms-service";
+import { Trash2 } from "lucide-react";
 
 interface EventPreviewListProps {
   onEdit: (event: any) => void;
-  onDelete: (id: string) => void;
   setSuccess: (message: string) => void;
   setError: (message: string) => void;
 }
 
 const EventPreviewList: React.FC<EventPreviewListProps> = ({
   onEdit,
-  onDelete,
   setSuccess,
   setError
 }) => {
@@ -46,9 +47,8 @@ const EventPreviewList: React.FC<EventPreviewListProps> = ({
     }
 
     try {
-      const eventsQuery = query(
-        collection(db, "events")
-      );
+      // ── Reverted to legacy collection: events ──
+      const eventsQuery = query(collection(db, "events"));
 
       // Set up real-time listener
       const unsubscribe = onSnapshot(
@@ -57,40 +57,30 @@ const EventPreviewList: React.FC<EventPreviewListProps> = ({
           const eventsList = querySnapshot.docs.map((doc) => ({
             id: doc.id,
             ...doc.data(),
-          })).sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+          })).sort((a: any, b: any) => {
+            // Safe date parsing for sorting
+            const dateA = a.date ? new Date(a.date).getTime() : 0;
+            const dateB = b.date ? new Date(b.date).getTime() : 0;
+            return dateB - dateA;
+          });
+          
           setEvents(eventsList);
           setLoading(false);
-          console.log("Fetched events:", eventsList.length);
-          // Debug the first event to check field names
-          if (eventsList.length > 0) {
-            console.log("First event data:", eventsList[0]);
-          }
         },
         (err) => {
-          setError(`Error fetching events: ${err.message}`);
-          console.error("Events fetch error:", err);
+          setError(`Permission Error: CMS access restricted. (${err.message})`);
+          console.error("[EventPreview] fetch error:", err);
           setLoading(false);
         }
       );
 
-      // Clean up the listener when component unmounts
       return () => unsubscribe();
     } catch (err: any) {
-      setError(`Error setting up events listener: ${err.message}`);
-      console.error("Events listener error:", err);
+      setError(`System Error: ${err.message}`);
       setLoading(false);
     }
   }, [setError]);
 
-  const handleDelete = async (eventId: string) => {
-    try {
-      await deleteDoc(doc(db, "events", eventId));
-      setSuccess("Event deleted successfully!");
-      setConfirmDelete(null);
-    } catch (err: any) {
-      setError(`Error deleting event: ${err.message}`);
-    }
-  };
 
   const handleEdit = (event: any) => {
     onEdit(event);
@@ -158,6 +148,31 @@ const EventPreviewList: React.FC<EventPreviewListProps> = ({
   const indexOfFirstEvent = indexOfLastEvent - eventsPerPage;
   const currentEvents = filteredEvents.slice(indexOfFirstEvent, indexOfLastEvent);
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+
+  const { userData, isWebmaster } = useAuth();
+  const handleDelete = async (event: any) => {
+    if (!userData) {
+       setError("Authentication required.");
+       return;
+    }
+    if (!window.confirm(`Are you sure you want to ${isWebmaster ? 'delete' : 'request deletion of'} "${getEventName(event)}"?`)) return;
+    
+    try {
+      await submitContentChange(
+        userData.uid,
+        userData.displayName || userData.name || "Unknown",
+        "events",
+        event,
+        event.id,
+        userData.email,
+        userData.role,
+        'delete'
+      );
+      setSuccess(isWebmaster ? "Event deleted successfully!" : "Deletion request submitted for approval.");
+    } catch (err: any) {
+      setError("Failed to process deletion: " + err.message);
+    }
+  };
 
   // Format date if needed
   const formatDate = (dateString: string) => {
@@ -362,68 +377,15 @@ const EventPreviewList: React.FC<EventPreviewListProps> = ({
                     </svg>
                   </button>
 
-                  {confirmDelete === event.id ? (
-                    <div className="flex items-center space-x-1 sm:space-x-2">
-                      <button
-                        onClick={() => handleDelete(event.id)}
-                        className="p-1.5 sm:p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors"
-                        title="Confirm Delete"
-                      >
-                        <svg
-                          className="w-4 h-4 sm:w-5 sm:h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
+                     <div className="flex items-center space-x-1 sm:space-x-2">
+                        <button
+                          onClick={() => handleDelete(event)}
+                          className="p-1.5 sm:p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
+                          title="Delete"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M5 13l4 4L19 7"
-                          />
-                        </svg>
-                      </button>
-                      <button
-                        onClick={() => setConfirmDelete(null)}
-                        className="p-1.5 sm:p-2 text-gray-500 hover:bg-gray-50 rounded-full transition-colors"
-                        title="Cancel"
-                      >
-                        <svg
-                          className="w-4 h-4 sm:w-5 sm:h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M6 18L18 6M6 6l12 12"
-                          />
-                        </svg>
-                      </button>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => setConfirmDelete(event.id)}
-                      className="p-1.5 sm:p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
-                      title="Delete"
-                    >
-                      <svg
-                        className="w-4 h-4 sm:w-5 sm:h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                        />
-                      </svg>
-                    </button>
-                  )}
+                          <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                        </button>
+                     </div>
                 </div>
               </div>
             </div>

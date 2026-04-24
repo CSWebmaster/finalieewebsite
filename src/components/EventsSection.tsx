@@ -10,10 +10,11 @@ import { useLatencyTracker } from "@/hooks/useLatencyTracker";
 import { useSmartLoader } from "@/hooks/useSmartLoader";
 import { SmartLoader } from "@/components/performance/SmartLoader";
 import { LazyImage } from "@/components/performance/LazyImage";
+import { EventCard } from "@/components/EventCard";
 
-/* ─────────────────────────────────────────────
-   SLIDE CARD — manages its own enter / exit classes
- ───────────────────────────────────────────── */
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+   SLIDE CARD â€” manages its own enter / exit classes
+ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 interface SlideCardProps {
   event: Event;
   sliding: boolean;
@@ -45,64 +46,50 @@ function SlideCard({ event, sliding, expanded, onToggleExpand }: SlideCardProps)
     prevSliding.current = sliding;
   }, [sliding]);
 
+  const eventName = event.title || "Untitled Event";
+
   return (
-    <div ref={cardRef} className="es-card es-slide-in relative">
-      <div 
-        className="absolute -top-20 -right-20 w-64 h-64 rounded-full opacity-[0.35] pointer-events-none"
-        style={{ 
-          backgroundImage: `url(${event.image})`, 
-          backgroundSize: 'cover', 
-          backgroundPosition: 'center', 
-          filter: 'blur(50px)' 
-        }}
-      />
-      <div 
-        className="absolute -bottom-16 -left-16 w-56 h-56 rounded-full opacity-[0.25] pointer-events-none"
-        style={{ 
-          backgroundImage: `url(${event.image})`, 
-          backgroundSize: 'cover', 
-          backgroundPosition: 'center', 
-          filter: 'blur(45px)' 
-        }}
-      />
-
-      {/* Left: image */}
-      <div className="es-img-side relative z-10 w-full md:w-auto">
-        <LazyImage 
-          src={event.image || ""} 
-          alt={event.title || ""} 
-          className="w-full object-contain rounded-lg"
-          containerClassName="w-full h-full min-h-[200px]"
-        />
-      </div>
-
-      {/* Right: details */}
-      <div className="es-detail-side relative z-10">
-        <h3 className="es-title">{event.title}</h3>
-        <div className="es-meta">
-          <span className="es-meta-row">
-            <Calendar className="es-meta-icon" />
-            {event.date}
-          </span>
-          <span className="es-meta-row">
-            <Clock className="es-meta-icon" />
-            {event.time}
-          </span>
+    <div ref={cardRef} className="es-slide-in">
+      <div className="es-card">
+        <div className="es-img-side">
+          <LazyImage 
+            src={event.image || '/placeholder-event.jpg'} 
+            alt={eventName} 
+            className="w-full h-full object-cover rounded-lg shadow-sm"
+          />
         </div>
-        <div className={cn("es-desc-wrap", expanded && "es-desc-wrap--open")}>
-          <p className="es-desc">{event.description}</p>
+        <div className="es-detail-side">
+          <div className="mb-2">
+             <span className="text-[10px] font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
+               Featured
+             </span>
+          </div>
+          <h3 className="es-title">{eventName}</h3>
+          <div className="es-meta">
+            <div className="es-meta-row">
+              <Calendar className="es-meta-icon" />
+              {event.date}
+            </div>
+            <div className="es-meta-row">
+              <Clock className="es-meta-icon" />
+              {event.time}
+            </div>
+          </div>
+          <div className={cn("es-desc-wrap", expanded && "es-desc-wrap--open")}>
+            <p className="es-desc">{event.description}</p>
+          </div>
+          <a href={event.link} className="es-learn">
+            Read More <ArrowRight className="w-3 h-3" />
+          </a>
         </div>
-        <a href={event.link || "#"} rel="noopener noreferrer" className="es-learn">
-          Learn more <ArrowRight className="es-learn-arrow" />
-        </a>
       </div>
     </div>
   );
 }
 
-/* ─────────────────────────────────────────────
+/* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
    MAIN COMPONENT
- ───────────────────────────────────────────── */
+ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 export default function EventsSection() {
   useLatencyTracker("EventsSection");
   const sectionRef = useScrollReveal<HTMLDivElement>(0.08);
@@ -126,7 +113,8 @@ export default function EventsSection() {
       setLoading(false);
       return;
     }
-    const q = query(collection(db, "events"), orderBy("date", "desc"), limit(15));
+    const eventsRef = collection(db, "events");
+    const q = query(eventsRef, orderBy("date", "desc"), limit(15));
     const unsub = onSnapshot(q, (snap) => {
       const evts: Event[] = snap.docs
         .filter((d) => d.data().isUpcoming !== true)
@@ -148,7 +136,8 @@ export default function EventsSection() {
 
   useEffect(() => {
     if (!db) return;
-    const q = query(collection(db, "events"), where("isUpcoming", "==", true), limit(30));
+    const eventsRef = collection(db, "events");
+    const q = query(eventsRef, where("isUpcoming", "==", true), limit(30));
     const unsub = onSnapshot(q, (snap) => {
       const evts: Event[] = snap.docs.map((d) => ({
         id: d.id,
@@ -249,7 +238,7 @@ export default function EventsSection() {
         /* VIEWPORT FIX: was missing, causing 0-height container */
         .es-viewport {
           position: relative;
-          min-height: 300px;
+          min-height: 250px;
           height: auto;
           overflow: hidden;
         }

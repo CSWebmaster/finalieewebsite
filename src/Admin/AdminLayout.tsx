@@ -10,7 +10,11 @@ import {
   CalendarDays,
   Landmark,
   Layers,
-  BookOpen
+  BookOpen,
+  CheckSquare,
+  Activity,
+  FormInput,
+  ClipboardList
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -19,34 +23,39 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { auth, db } from "../firebase";
 import { signOut } from "firebase/auth";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
+import GlobalSearch from "./GlobalSearch";
 
 interface AdminLayoutProps {
   children?: React.ReactNode;
   activeTab: string;
   onTabChange: (tab: string) => void;
+  visibleTabs?: string[];   // if provided, only show these tabs
+  userRole?: 'webmaster' | 'core_member' | 'admin' | 'writer';
 }
 
-const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab, onTabChange }) => {
+const AdminLayout: React.FC<AdminLayoutProps> = ({
+  children, activeTab, onTabChange,
+  visibleTabs,
+  userRole = 'webmaster',
+}) => {
   const [confirmLogout, setConfirmLogout] = useState(false);
-  const [pendingBlogCount, setPendingBlogCount] = useState(0);
+  const [pendingChangesCount, setPendingChangesCount] = useState(0);
 
+  // 1. Unified Pending changes listener (for both Sidebar and Mobile)
   useEffect(() => {
-    if (!db) {
-      console.error("[AdminLayout] Firestore db not initialized. Check Firebase env vars.");
-      return;
-    }
-    const q = query(collection(db, "blogs"), where("status", "==", "pending"));
+    if (!db) return;
+    const q = query(
+      collection(db, "pendingChanges"), 
+      where("status", "==", "pending")
+    );
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      setPendingBlogCount(snapshot.size);
+      setPendingChangesCount(snapshot.size);
+    }, (err) => {
+      console.warn("[AdminLayout] Pending changes listener error:", err.message);
     });
     return () => unsubscribe();
   }, []);
   
-  // Debug tab changes
-  useEffect(() => {
-    console.log("AdminLayout: activeTab changed to:", activeTab);
-  }, [activeTab]);
-
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -59,118 +68,161 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab, onTabCha
     <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
       <TooltipProvider>
         <div className="flex flex-col lg:flex-row min-h-screen h-screen bg-slate-50 dark:bg-slate-900">
-          {/* Sidebar */}
+          {/* ────── SIDEBAR (Desktop) ────── */}
           <aside className="hidden lg:flex flex-col w-56 xl:w-64 border-r border-slate-200 dark:border-slate-800 p-3 xl:p-4 sticky top-0 h-screen overflow-hidden">
-            {/* Top section with logo */}
-            <div className="flex items-center mb-4 xl:mb-6">
-              <LayoutDashboard className="h-5 w-5 xl:h-6 xl:w-6 mr-1.5 xl:mr-2" />
-              <h1 className="text-lg xl:text-xl font-bold">IEEE Admin</h1>
+            <div className="flex items-center mb-6">
+              <LayoutDashboard className="h-6 w-6 mr-2 text-blue-600" />
+              <h1 className="text-xl font-bold tracking-tight">IEEE Admin</h1>
             </div>
             
-            {/* Navigation links - adding overflow for scroll */}
-            <nav className="space-y-1.5 xl:space-y-2 overflow-y-auto flex-shrink-0">
+            <nav className="space-y-1 overflow-y-auto flex-1 pr-1 custom-scrollbar">
               <Button
                 variant={activeTab === "dashboard" ? "default" : "ghost"}
-                className="w-full justify-start h-9 xl:h-10 text-sm"
+                className="w-full justify-start h-10"
                 onClick={() => onTabChange("dashboard")}
               >
                 <LayoutDashboard className="h-4 w-4 mr-2" />
                 Dashboard
               </Button>
-              
-              <Button
-                variant={activeTab === "events" ? "default" : "ghost"}
-                className="w-full justify-start h-9 xl:h-10 text-sm"
-                onClick={() => onTabChange("events")}
-              >
-                <Calendar className="h-4 w-4 mr-2" />
-                Events
-              </Button>
-              
-              <Button
-                variant={activeTab === "awards" ? "default" : "ghost"}
-                className="w-full justify-start h-9 xl:h-10 text-sm"
-                onClick={() => onTabChange("awards")}
-              >
-                <Award className="h-4 w-4 mr-2" />
-                Achievements
-              </Button>
-              
-              <Button
-                variant={activeTab === "members" ? "default" : "ghost"}
-                className="w-full justify-start h-9 xl:h-10 text-sm"
-                onClick={() => onTabChange("members")}
-              >
-                <Users className="h-4 w-4 mr-2" />
-                Team
-              </Button>
-              
-              <Button
-                variant={activeTab === "journey" ? "default" : "ghost"}
-                className="w-full justify-start h-9 xl:h-10 text-sm"
-                onClick={() => onTabChange("journey")}
-              >
-                <Landmark className="h-4 w-4 mr-2" />
-                Our Journey
-              </Button>
-              
-              <Button
-                variant={activeTab === "blogs" ? "default" : "ghost"}
-                className="w-full justify-start h-9 xl:h-10 text-sm"
-                onClick={() => onTabChange("blogs")}
-              >
-                <BookOpen className="h-4 w-4 mr-2" />
-                Blogs
-                {pendingBlogCount > 0 && (
-                  <span className="ml-auto bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
-                    {pendingBlogCount}
-                  </span>
-                )}
-              </Button>
 
-              <Button
-                variant={activeTab === "sigs" ? "default" : "ghost"}
-                className="w-full justify-start h-9 xl:h-10 text-sm"
-                onClick={() => onTabChange("sigs")}
-              >
-                <Layers className="h-4 w-4 mr-2" />
-                SIGs
-              </Button>
+              {/* ── Dynamic Content Sections ── */}
+              {(!visibleTabs || visibleTabs.includes('events')) && (
+                <Button
+                  variant={activeTab === "events" ? "default" : "ghost"}
+                  className="w-full justify-start h-10"
+                  onClick={() => onTabChange("events")}
+                >
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Events
+                </Button>
+              )}
               
-              <Button
-                variant={activeTab === "users" ? "default" : "ghost"}
-                className="w-full justify-start h-9 xl:h-10 text-sm"
-                onClick={() => onTabChange("users")}
-              >
-                <Users className="h-4 w-4 mr-2" />
-                User Management
-              </Button>
+              {(!visibleTabs || visibleTabs.includes('awards')) && (
+                <Button
+                  variant={activeTab === "awards" ? "default" : "ghost"}
+                  className="w-full justify-start h-10"
+                  onClick={() => onTabChange("awards")}
+                >
+                  <Award className="h-4 w-4 mr-2" />
+                  Achievements
+                </Button>
+              )}
+              
+              {(!visibleTabs || visibleTabs.includes('members')) && (
+                <Button
+                  variant={activeTab === "members" ? "default" : "ghost"}
+                  className="w-full justify-start h-10"
+                  onClick={() => onTabChange("members")}
+                >
+                  <Users className="h-4 w-4 mr-2" />
+                  Team
+                </Button>
+              )}
+              
+              {(!visibleTabs || visibleTabs.includes('blogs')) && (
+                <Button
+                  variant={activeTab === "blogs" ? "default" : "ghost"}
+                  className="w-full justify-start h-10"
+                  onClick={() => onTabChange("blogs")}
+                >
+                  <BookOpen className="h-4 w-4 mr-2" />
+                  Blogs
+                </Button>
+              )}
+
+              {/* ── Form Management (Webmaster/Admin) ── */}
+              {userRole === 'webmaster' && (
+                <>
+                  <Button
+                    variant={activeTab === "forms" ? "default" : "ghost"}
+                    className="w-full justify-start h-10"
+                    onClick={() => onTabChange("forms")}
+                  >
+                    <FormInput className="h-4 w-4 mr-2" />
+                    Forms
+                  </Button>
+                  <Button
+                    variant={activeTab === "submissions" ? "default" : "ghost"}
+                    className="w-full justify-start h-10"
+                    onClick={() => onTabChange("submissions")}
+                  >
+                    <ClipboardList className="h-4 w-4 mr-2" />
+                    Submissions
+                  </Button>
+                </>
+              )}
+
+              {/* ── Webmaster Control Zone ── */}
+              {userRole === 'webmaster' && (
+                <>
+                  <div className="pt-4 pb-2 px-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                    Administration
+                  </div>
+                  <Button
+                    variant={activeTab === "approvals" ? "default" : "ghost"}
+                    className="w-full justify-start h-10 relative"
+                    onClick={() => onTabChange("approvals")}
+                  >
+                    <CheckSquare className="h-4 w-4 mr-2" />
+                    Approvals
+                    {pendingChangesCount > 0 && (
+                      <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-blue-600 px-1.5 text-[10px] font-bold text-white">
+                        {pendingChangesCount}
+                      </span>
+                    )}
+                  </Button>
+
+                  <Button
+                    variant={activeTab === "users" ? "default" : "ghost"}
+                    className="w-full justify-start h-10"
+                    onClick={() => onTabChange("users")}
+                  >
+                    <Users className="h-4 w-4 mr-2" />
+                    Core Members
+                  </Button>
+
+                  <Button
+                    variant={activeTab === "history" ? "default" : "ghost"}
+                    className="w-full justify-start h-10"
+                    onClick={() => onTabChange("history")}
+                  >
+                    <Activity className="h-4 w-4 mr-2" />
+                    Audit Logs
+                  </Button>
+                </>
+              )}
+
+              {/* ── Core Member Zone ── */}
+              {userRole === 'core_member' && (
+                <Button
+                  variant={activeTab === "my-submissions" ? "default" : "ghost"}
+                  className="w-full justify-start h-10"
+                  onClick={() => onTabChange("my-submissions")}
+                >
+                  <CheckSquare className="h-4 w-4 mr-2" />
+                  My Submissions
+                </Button>
+              )}
             </nav>
             
-            {/* Spacer that pushes the logout button to the bottom */}
-            <div className="flex-grow min-h-0"></div>
-            
-            {/* Bottom section with logout */}
-            <div className="mt-auto flex-shrink-0">
-              <Separator className="mb-3 xl:mb-4" />
-              
+            <div className="pt-4 border-t border-slate-200 dark:border-slate-800">
               {confirmLogout ? (
-                <div className="space-y-1.5 xl:space-y-2">
-                  <p className="text-xs xl:text-sm">Are you sure you want to log out?</p>
-                  <div className="flex space-x-2">
+                <div className="bg-slate-100 dark:bg-slate-800 p-2 rounded-xl border border-slate-200 dark:border-slate-700 animate-in fade-in zoom-in duration-200">
+                  <p className="text-[11px] text-center mb-2 font-medium">Log out of Admin?</p>
+                  <div className="flex gap-1.5">
                     <Button 
                       variant="destructive" 
                       size="sm"
                       onClick={handleLogout}
-                      className="flex-1 h-8 xl:h-9 text-xs xl:text-sm"
+                      className="flex-1 h-7 text-[10px]"
                     >
-                      Confirm
+                      Logout
                     </Button>
                     <Button 
                       variant="outline" 
                       size="sm"
                       onClick={() => setConfirmLogout(false)}
-                      className="flex-1 h-8 xl:h-9 text-xs xl:text-sm"
+                      className="flex-1 h-7 text-[10px]"
                     >
                       Cancel
                     </Button>
@@ -178,164 +230,103 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({ children, activeTab, onTabCha
                 </div>
               ) : (
                 <Button 
-                  variant="outline" 
-                  className="w-full justify-start h-9 xl:h-10 text-sm"
+                  variant="ghost" 
+                  className="w-full justify-start h-10 text-slate-500 hover:text-red-600 hover:bg-red-50"
                   onClick={() => setConfirmLogout(true)}
                 >
                   <LogOut className="h-4 w-4 mr-2" />
-                  Logout
+                  Sign Out
                 </Button>
               )}
             </div>
           </aside>
 
-          {/* Mobile Navigation */}
-          <div className="block lg:hidden w-full">
-            <div className="p-3 sm:p-4 border-b border-slate-200 dark:border-slate-800">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <LayoutDashboard className="h-5 w-5 sm:h-6 sm:w-6 mr-1.5 sm:mr-2" />
-                  <h1 className="text-lg sm:text-xl font-bold">IEEE Admin</h1>
+          {/* ────── MOBILE HEADER & NAV ────── */}
+          <div className="lg:hidden w-full flex flex-col bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-sm z-50">
+            <div className="px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center mr-2 shadow-lg shadow-blue-500/20">
+                  <LayoutDashboard className="h-5 w-5 text-white" />
                 </div>
-                <Button 
-                  variant="outline" 
-                  size="icon"
-                  className="h-8 w-8 sm:h-9 sm:w-9"
-                  onClick={() => setConfirmLogout(true)}
-                >
-                  <LogOut className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                </Button>
+                <h1 className="text-lg font-bold tracking-tight">IEEE Admin</h1>
               </div>
-              
-              {confirmLogout && (
-                <Card className="mt-2 p-2 sm:p-3">
-                  <p className="text-xs sm:text-sm mb-2">Are you sure you want to log out?</p>
-                  <div className="flex space-x-2">
-                    <Button 
-                      variant="destructive" 
-                      size="sm"
-                      onClick={handleLogout}
-                      className="flex-1 text-xs sm:text-sm h-8"
-                    >
-                      Confirm
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => setConfirmLogout(false)}
-                      className="flex-1 text-xs sm:text-sm h-8"
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                </Card>
-              )}
-
-              {/* Simple navigation buttons for mobile instead of tabs to avoid conflicts */}
-              <div className="grid grid-cols-6 gap-1 mt-3 sm:mt-4">
-                <button
-                  onClick={() => onTabChange("dashboard")}
-                  className={`flex flex-col items-center justify-center py-2 rounded-lg ${
-                    activeTab === "dashboard" 
-                      ? "bg-blue-50 text-blue-700" 
-                      : "text-gray-600 hover:bg-gray-50"
-                  }`}
-                >
-                  <LayoutDashboard className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span className="text-[10px] sm:text-xs mt-1">Dashboard</span>
-                </button>
-                <button
-                  onClick={() => onTabChange("events")}
-                  className={`flex flex-col items-center justify-center py-2 rounded-lg ${
-                    activeTab === "events" 
-                      ? "bg-blue-50 text-blue-700" 
-                      : "text-gray-600 hover:bg-gray-50"
-                  }`}
-                >
-                  <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span className="text-[10px] sm:text-xs mt-1">Events</span>
-                </button>
-                <button
-                  onClick={() => onTabChange("upcoming")}
-                  className={`flex flex-col items-center justify-center py-2 rounded-lg ${
-                    activeTab === "upcoming" 
-                      ? "bg-blue-50 text-blue-700" 
-                      : "text-gray-600 hover:bg-gray-50"
-                  }`}
-                >
-                  <CalendarDays className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span className="text-[10px] sm:text-xs mt-1">Upcoming</span>
-                </button>
-                <button
-                  onClick={() => onTabChange("awards")}
-                  className={`flex flex-col items-center justify-center py-2 rounded-lg ${
-                    activeTab === "awards" 
-                      ? "bg-blue-50 text-blue-700" 
-                      : "text-gray-600 hover:bg-gray-50"
-                  }`}
-                >
-                  <Award className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span className="text-[10px] sm:text-xs mt-1">Achieve</span>
-                </button>
-                <button
-                  onClick={() => onTabChange("members")}
-                  className={`flex flex-col items-center justify-center py-2 rounded-lg ${
-                    activeTab === "members" 
-                      ? "bg-blue-50 text-blue-700" 
-                      : "text-gray-600 hover:bg-gray-50"
-                  }`}
-                >
-                  <Users className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span className="text-[10px] sm:text-xs mt-1">Members</span>
-                </button>
-                <button
-                  onClick={() => onTabChange("blogs")}
-                  className={`flex flex-col items-center justify-center py-2 rounded-lg ${
-                    activeTab === "blogs" 
-                      ? "bg-blue-50 text-blue-700" 
-                      : "text-gray-600 hover:bg-gray-50"
-                  }`}
-                >
-                  <div className="relative">
-                    <BookOpen className="h-4 w-4 sm:h-5 sm:w-5" />
-                    {pendingBlogCount > 0 && (
-                      <span className="absolute -top-1.5 -right-2 bg-red-500 text-white text-[8px] sm:text-[9px] font-bold h-3.5 w-3.5 sm:h-4 sm:w-4 flex items-center justify-center rounded-full">
-                        {pendingBlogCount}
-                      </span>
-                    )}
-                  </div>
-                  <span className="text-[10px] sm:text-xs mt-1">Blogs</span>
-                </button>
-                <button
-                  onClick={() => onTabChange("sigs")}
-                  className={`flex flex-col items-center justify-center py-2 rounded-lg ${
-                    activeTab === "sigs" 
-                      ? "bg-blue-50 text-blue-700" 
-                      : "text-gray-600 hover:bg-gray-50"
-                  }`}
-                >
-                  <Layers className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span className="text-[10px] sm:text-xs mt-1">SIGs</span>
-                </button>
-                <button
-                  onClick={() => onTabChange("users")}
-                  className={`flex flex-col items-center justify-center py-2 rounded-lg ${
-                    activeTab === "users" 
-                      ? "bg-blue-50 text-blue-700" 
-                      : "text-gray-600 hover:bg-gray-50"
-                  }`}
-                >
-                  <Users className="h-4 w-4 sm:h-5 sm:w-5" />
-                  <span className="text-[10px] sm:text-xs mt-1">Users</span>
-                </button>
-              </div>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                className="rounded-full h-9 w-9"
+                onClick={() => setConfirmLogout(true)}
+              >
+                <LogOut className="h-4 w-4 text-slate-400" />
+              </Button>
             </div>
+            
+            {/* Scrollable Mobile Nav Row */}
+            <div className="flex items-center gap-1 px-2 pb-2 overflow-x-auto no-scrollbar">
+              {[
+                { id: 'dashboard', icon: <LayoutDashboard className="h-4 w-4" />, label: 'Home' },
+                { id: 'events', icon: <Calendar className="h-4 w-4" />, label: 'Events' },
+                { id: 'awards', icon: <Award className="h-4 w-4" />, label: 'Awards' },
+                { id: 'members', icon: <Users className="h-4 w-4" />, label: 'Team' },
+                { id: 'blogs', icon: <BookOpen className="h-4 w-4" />, label: 'Blogs' },
+                ...(userRole === 'webmaster' ? [
+                  { id: 'forms', icon: <FormInput className="h-4 w-4" />, label: 'Forms' },
+                  { id: 'submissions', icon: <ClipboardList className="h-4 w-4" />, label: 'Data' },
+                  { id: 'approvals', icon: <CheckSquare className="h-4 w-4" />, label: 'Approvals', badge: pendingChangesCount },
+                  { id: 'users', icon: <Users className="h-4 w-4" />, label: 'Users' }
+                ] : []),
+                ...(userRole === 'core_member' ? [
+                  { id: 'my-submissions', icon: <CheckSquare className="h-4 w-4" />, label: 'Subs' }
+                ] : [])
+              ].map(item => (
+                <button
+                  key={item.id}
+                  onClick={() => onTabChange(item.id)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full whitespace-nowrap text-xs font-medium transition-all ${
+                    activeTab === item.id 
+                      ? "bg-blue-600 text-white shadow-md shadow-blue-500/20 scale-105" 
+                      : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                  }`}
+                >
+                  {item.icon}
+                  {item.label}
+                  {item.badge && item.badge > 0 && (
+                    <span className="h-1.5 w-1.5 rounded-full bg-white ml-0.5 animate-pulse" />
+                  )}
+                </button>
+              ))}
+            </div>
+            
+            {confirmLogout && (
+              <div className="absolute top-16 left-4 right-4 bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 animate-in slide-in-from-top-2 duration-300">
+                <p className="text-center font-bold mb-3">Sign out of Admin Portal?</p>
+                <div className="flex gap-2">
+                  <Button variant="destructive" className="flex-1 rounded-xl" onClick={handleLogout}>Logout</Button>
+                  <Button variant="outline" className="flex-1 rounded-xl" onClick={() => setConfirmLogout(false)}>Stay</Button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Main Content */}
           <div className="flex-1 overflow-hidden w-full">
             <div className="h-full overflow-y-auto overflow-x-hidden p-2 sm:p-3 md:p-4 lg:p-6">
               <div className="w-full max-w-7xl mx-auto pb-16">
+                {/* Top Header with Search */}
+                <header className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="flex-1">
+                    <GlobalSearch onNavigate={onTabChange} />
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="hidden sm:flex flex-col items-end">
+                      <span className="text-xs font-bold text-slate-900 dark:text-white">{auth.currentUser?.displayName || auth.currentUser?.email || "Admin"}</span>
+                      <span className="text-[10px] text-slate-500 font-medium capitalize">{userRole}</span>
+                    </div>
+                    <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-blue-500/20">
+                      {(auth.currentUser?.displayName || auth.currentUser?.email || "A").charAt(0).toUpperCase()}
+                    </div>
+                  </div>
+                </header>
+
                 {children}
               </div>
             </div>

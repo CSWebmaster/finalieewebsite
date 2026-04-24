@@ -40,6 +40,12 @@ const NAV_ITEMS: NavItem[] = [
         ],
       },
       { title: "Our SIGs", href: "/sigs" },
+      {
+        title: "Blog",
+        children: [
+          { title: "Research Paper", href: "/blogs/category/research" },
+        ],
+      },
     ],
   },
   { title: "Events", href: "/events" },
@@ -63,7 +69,9 @@ const NAV_ITEMS: NavItem[] = [
     title: "Blogs",
     children: [
       { title: "All Blogs", href: "/blogs" },
+      { title: "Blog", href: "/blogs/category/blog" },
       { title: "Article", href: "/blogs/category/article" },
+      { title: "Research Paper", href: "/blogs/category/research" },
     ],
   },
   { title: "Bylaws", href: "/bylaws" },

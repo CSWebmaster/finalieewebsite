@@ -51,6 +51,7 @@ const EventDetails = () => {
       if (!id) return;
 
       try {
+        // ── Reverted to legacy collection: events ──
         const eventRef = doc(db, "events", id);
         const eventDoc = await getDoc(eventRef);
 

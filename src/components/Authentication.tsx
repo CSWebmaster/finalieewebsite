@@ -23,79 +23,95 @@ const Authentication = () => {
       setIsLoading(false);
       return;
     }
-    
+
     try {
-      // 1. Authenticate securely via Firebase Auth Handshake
+      // 1. Authenticate via Firebase Auth
       const userCredential = await signInWithEmailAndPassword(auth, email.trim(), password.trim());
       const user = userCredential.user;
       const userEmail = user.email!.trim().toLowerCase();
 
-      // 2a. HARDCODED ADMIN BYPASS — checked FIRST, before Firestore
-      //     This works even if Firestore rules haven't been deployed yet.
+      // 2. Legacy hardcoded bypass (unchanged)
       let role: string | null = null;
+      let mustChangePwd = false;
       if (userEmail === "ptarang69@gmail.com") {
-        role = "admin";
+        role = "webmaster";
       }
 
-      // 2b. For non-hardcoded users, query Firestore for their role
+      // 3. For all other users, read their Firestore doc by UID
+      //    (The security rules allow: isLoggedIn() && request.auth.uid == uid)
       if (!role) {
         try {
-          const docRef = doc(db, 'users', userEmail);
-          const userSnap = await getDoc(docRef);
+          const userDocRef = doc(db, "users", user.uid);
+          const userSnap = await getDoc(userDocRef);
+
           if (userSnap.exists()) {
-            role = userSnap.data().role;
+            const data = userSnap.data();
+            role = data.role ?? null;
+            mustChangePwd = data.mustChangePassword === true;
           } else {
-            // Fallback: query by email field
-            const q = query(collection(db, "users"), where("email", "==", userEmail));
-            const qSnap = await getDocs(q);
-            if (!qSnap.empty) {
-              role = qSnap.docs[0].data().role;
+            // Doc keyed by UID doesn't exist — try fallback by email field
+            // (only works if Firestore rules allow it, otherwise will throw)
+            try {
+              const q = query(collection(db, "users"), where("email", "==", userEmail));
+              const qSnap = await getDocs(q);
+              if (!qSnap.empty) {
+                const data = qSnap.docs[0].data();
+                role = data.role ?? null;
+                mustChangePwd = data.mustChangePassword === true;
+              }
+            } catch {
+              // rules denied collection query — no profile found
             }
           }
         } catch (firestoreErr: any) {
-          console.warn("[Auth] Could not read user role from Firestore:", firestoreErr?.message);
-          // If there's no hardcoded bypass and Firestore fails, deny access
+          console.warn("[Auth] Firestore read failed:", firestoreErr?.message);
         }
       }
 
+      // 4. Must have a recognised role
       if (!role) {
         await signOut(auth);
-        setError("Unauthorized access. Profile not found in database.");
+        setError("Unauthorized access. Your profile was not found in the database.");
         return;
       }
 
-      // 4. Reject Writers from Admin Panel
-      if (role !== 'admin') {
+      // 5. Accept webmaster AND core_member roles (reject everything else)
+      if (role !== "webmaster" && role !== "core_member") {
         await signOut(auth);
         setError("Unauthorized access. Admin privileges required.");
         return;
       }
 
-      // 5. Authorized: Allow access
-      console.log("Authentication successful, redirecting to admin panel...");
+      // 6. First-login password change redirect
+      if (mustChangePwd) {
+        navigate("/ieee-admin-portal-sou-2025");
+        return;
+      }
+
+      // 7. Authorised — navigate to the portal
+      console.log("[Auth] Login successful. Role:", role);
       navigate("/ieee-admin-portal-sou-2025");
-      
+
     } catch (error: any) {
       console.error("Authentication failed:", error);
-      
-      // Handle different Firebase auth errors
+
       switch (error.code) {
-        case 'auth/invalid-email':
+        case "auth/invalid-email":
           setError("Invalid email format.");
           break;
-        case 'auth/user-disabled':
+        case "auth/user-disabled":
           setError("This account has been disabled.");
           break;
-        case 'auth/user-not-found':
+        case "auth/user-not-found":
           setError("No account found with this email.");
           break;
-        case 'auth/wrong-password':
+        case "auth/wrong-password":
           setError("Incorrect password.");
           break;
-        case 'auth/invalid-credential':
+        case "auth/invalid-credential":
           setError("Invalid credentials. Please check your email and password.");
           break;
-        case 'auth/too-many-requests':
+        case "auth/too-many-requests":
           setError("Too many failed login attempts. Please try again later.");
           break;
         default:

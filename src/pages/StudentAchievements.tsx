@@ -45,7 +45,7 @@ export default function StudentAchievements() {
       achievement.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       achievement.description.toLowerCase().includes(searchTerm.toLowerCase())
     )
-    .sort((a, b) => Number(b.year) - Number(a.year)); // descending: 2026 → 2025 → ...
+    .sort((a, b) => Number(b.year) - Number(a.year)); // descending: 2026 â†’ 2025 â†’ ...
 
   // Group by year (descending order)
   const groupedByYear = filteredAchievements.reduce<Record<string, Achievement[]>>((acc, achievement) => {
@@ -99,7 +99,7 @@ export default function StudentAchievements() {
                     key={achievement.id}
                     className="glass rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 flex flex-col"
                   >
-                    {/* IMAGE — fully visible, no cropping */}
+                    {/* IMAGE â€” fully visible, no cropping */}
                     <div className="relative bg-slate-50 dark:bg-slate-900 border-b border-gray-200 dark:border-gray-700 flex items-center justify-center overflow-hidden" style={{ aspectRatio: '4/3' }}>
                       <img loading="lazy"
                         src={achievement.image}

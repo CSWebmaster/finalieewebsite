@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ArrowLeft } from "lucide-react";
+import LinkedInIcon from "@/components/LinkedInIcon";
 import { Skeleton } from "@/components/ui/skeleton";
 const MemberDetails = () => {
   const { id } = useParams();
@@ -22,6 +23,7 @@ const MemberDetails = () => {
         return;
       }
       try {
+        // ── Reverted to legacy collection: members ──
         const memberDoc = await getDoc(doc(db, "members", id));
         if (memberDoc.exists()) {
           setMember({ id: memberDoc.id, ...memberDoc.data() });
@@ -148,23 +150,9 @@ const MemberDetails = () => {
                 {member.designation}
               </p>
             )}
-            {member.linkedin && (
-              <a
-                href={member.linkedin}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-4 inline-flex items-center text-blue-600 hover:text-blue-800"
-              >
-                <svg
-                  className="h-5 w-5 mr-1"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" />
-                </svg>
-                LinkedIn Profile
-              </a>
-            )}
+            <div className="mt-4">
+              <LinkedInIcon href={member.linkedin} />
+            </div>
           </CardContent>
         </Card>
         {/* Member Details */}

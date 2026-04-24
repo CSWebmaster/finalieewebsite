@@ -2,13 +2,17 @@ import { useState, useEffect } from 'react';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
+import { isWebmasterEmail, UserRole } from '@/lib/roles';
 
 export interface UserData {
   uid: string;
-  name: string;
   email: string;
-  role: 'admin' | 'writer';
-  enrollment_number?: string;
+  displayName: string;
+  role: UserRole;
+  isActive: boolean;
+  mustChangePassword: boolean;
+  createdBy?: string;
+  permissions?: string[];
 }
 
 export const useAuth = () => {
@@ -19,7 +23,6 @@ export const useAuth = () => {
 
   useEffect(() => {
     if (!auth) {
-      console.warn("[useAuth] Firebase Auth not initialized.");
       setLoading(false);
       return;
     }
@@ -27,34 +30,59 @@ export const useAuth = () => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setLoading(true);
       setError(null);
-      
+
       if (user) {
+        // ── Webmaster fast-path: check email first ──────────────────
+        if (isWebmasterEmail(user.email)) {
+          setCurrentUser(user);
+          setUserData({
+            uid: user.uid,
+            email: user.email!,
+            displayName: user.displayName || user.email!,
+            role: 'webmaster',
+            isActive: true,
+            mustChangePassword: false,
+          });
+          setLoading(false);
+          return;
+        }
+
+        // ── Core member: verify in Firestore ───────────────────────
         if (!db) {
-          console.error("[useAuth] Firestore not available.");
           setError("Database connection error");
           setLoading(false);
           return;
         }
 
         try {
-          // STRICT RBAC: Fetch document by UID
           const userRef = doc(db, 'users', user.uid);
           const userSnap = await getDoc(userRef);
 
           if (userSnap.exists()) {
             const data = userSnap.data();
+
+            if (!data.isActive) {
+              setError("Your account has been deactivated. Contact a Webmaster.");
+              await signOut(auth);
+              setCurrentUser(null);
+              setUserData(null);
+              setLoading(false);
+              return;
+            }
+
+            setCurrentUser(user);
             setUserData({
               uid: user.uid,
-              name: data.name || "User",
               email: user.email || data.email,
-              role: data.role as 'admin' | 'writer',
-              enrollment_number: data.enrollment_number
+              displayName: data.displayName || data.name || user.email!,
+              role: (data.role as UserRole) || 'core_member',
+              isActive: data.isActive ?? true,
+              mustChangePassword: data.mustChangePassword ?? false,
+              createdBy: data.createdBy,
+              permissions: data.permissions,
             });
-            setCurrentUser(user);
           } else {
-            console.warn(`[useAuth] Unauthorized: No document found for UID ${user.uid} in 'users' collection.`);
-            setError("Unauthorized: Your account is not registered as an Admin or Writer.");
-            // We don't auto-signout here because the UI might want to show a specific error
+            setError("Unauthorized: Your account is not registered. Contact a Webmaster.");
             setCurrentUser(user);
             setUserData(null);
           }
@@ -67,6 +95,7 @@ export const useAuth = () => {
         setCurrentUser(null);
         setUserData(null);
       }
+
       setLoading(false);
     });
 
@@ -81,5 +110,19 @@ export const useAuth = () => {
     }
   };
 
-  return { currentUser, userData, loading, error, logout, isAdmin: userData?.role === 'admin', isWriter: userData?.role === 'writer' };
+  const isWebmaster = userData?.role === 'webmaster';
+  const isCoreMember = userData?.role === 'core_member';
+
+  return {
+    currentUser,
+    userData,
+    loading,
+    error,
+    logout,
+    isWebmaster,
+    isCoreMember,
+    // Legacy aliases so existing code doesn't break
+    isAdmin: isWebmaster,
+    isWriter: isCoreMember,
+  };
 };

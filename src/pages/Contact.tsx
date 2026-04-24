@@ -1,6 +1,5 @@
 import React, { useState, useRef } from "react";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-import { db } from "../firebase";
+import { SHEETS_WEBHOOK_URL, SHEETS_SECRET } from "@/config/sheets";
 import PageLayout from "@/components/PageLayout";
 import { TypingAnimation } from "@/components/TypingAnimation";
 import { Button } from "@/components/ui/button";
@@ -8,8 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { sendEmail } from "@/lib/sendEmail";
-import { saveToGoogleSheets } from "@/lib/googleSheets";
 import { useLatencyTracker } from "@/hooks/useLatencyTracker";
 
 export default function ContactUs() {
@@ -34,38 +31,30 @@ export default function ContactUs() {
 
     setIsLoading(true);
     try {
-      // 1. Save to Firestore (Blocking)
-      console.log("[Firestore] Attempting to save contact submission...");
-      await addDoc(collection(db, "contacts"), {
-        name,
-        email,
-        phone,
-        message,
-        createdAt: serverTimestamp(),
-        status: "new",
+      const response = await fetch(SHEETS_WEBHOOK_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          secret: SHEETS_SECRET,
+          type: "Contact Us",
+          values: {
+            name,
+            email,
+            phone,
+            message,
+            subject: "Website Contact Form Submission"
+          }
+        }),
       });
-      console.log("[Firestore] Success: Contact submission saved.");
 
-      // 2. Send Email (Blocking)
-      await sendEmail({ name, email, phone, message, page: "Contact" });
-
-      // 3. Save to Google Sheets (Non-blocking)
-      // We don't 'await' this to ensure form success even if Sheets fails
-      saveToGoogleSheets({ 
-        type: "contact", 
-        name, 
-        email, 
-        phone, 
-        message 
-      }, "Contact_Us").catch(err => {
-        console.error("[GoogleSheets] Failure (Non-blocking):", err);
-      });
-      
       toast.success("Message sent! We'll get back to you soon.");
       form.reset();
-    } catch (err: unknown) {
-      console.error("[Firestore/Email] Critical failure:", err);
-      toast.error(err instanceof Error ? err.message : "Failed to send message.");
+    } catch (err: any) {
+      console.error("[Submission] Failure:", err);
+      toast.error("Failed to send message. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -104,6 +93,8 @@ export default function ContactUs() {
                   <Label htmlFor="message" className="text-foreground">Message</Label>
                   <Textarea id="message" placeholder="How can we help you?" rows={4} className="text-foreground" />
                 </div>
+
+                {/* Removed Honeypot for simple fetch */}
 
                 <Button type="submit" className="w-full" disabled={isLoading}>
                   {isLoading ? "Sending…" : "Send Message"}

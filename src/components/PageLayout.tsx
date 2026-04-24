@@ -27,7 +27,7 @@ export default function PageLayout({
       <Navbar />
       <main className={cn(
         "flex-grow w-full",
-        !hasHero && "pt-[140px] lg:pt-[180px]",
+        !hasHero && "pt-[72px] lg:pt-[80px]",
         className
       )}>
         {children}

@@ -27,6 +27,7 @@ const Terms = lazy(() => import("./pages/Terms"));
 const BlogList = lazy(() => import("./pages/blogs/BlogList"));
 const BlogDetail = lazy(() => import("./pages/blogs/BlogDetail"));
 const WriteBlog = lazy(() => import("./pages/blogs/WriteBlog"));
+const Register = lazy(() => import("./pages/Register"));
 
 // SIGs Pages
 const SIGs = lazy(() => import("./pages/SIGs"));
@@ -208,6 +209,7 @@ function App() {
 
                   {/* Details Pages */}
                   <Route path="/eventdetails/:id" element={<EventDetails />} />
+                  <Route path="/register/:id" element={<Register />} />
                   <Route path="/awarddetails/:id" element={<AwardDetails />} />
                   <Route path="/memberdetails/:id" element={<MemberDetails />} />
 

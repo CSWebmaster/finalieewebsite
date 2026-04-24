@@ -1,64 +1,107 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    
+    // ── SUPER OVERRIDE for Webmasters ──
+    match /{document=**} {
+      allow read, write: if isWebmaster();
+    }
+
+    // ── Webmaster whitelist (by email — double-lock) ─────────────────
+    function isWebmaster() {
+      return request.auth != null 
+        && request.auth.token.email != null
+        && request.auth.token.email.lower() in [
+          "ieee.wm@socet.edu.in",
+          "ieeewie.wm@silveroakuni.ac.in",
+          "ieeecs.wm@silveroakuni.ac.in",
+          "ieeesps.wm@silveroakuni.ac.in",
+          "ieeesight.wm@silveroakuni.ac.in"
+        ];
+    }
 
     function isLoggedIn() {
       return request.auth != null;
     }
 
-    function getUserRole() {
-      // Fetch role based on AUTH UID from the users collection
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    function coreMemberDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
 
-    function isAdmin() {
-      return isLoggedIn() && getUserRole() == "admin";
+    function isActiveCoreMember() {
+      return isLoggedIn()
+        && !isWebmaster()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "core_member"
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isActive == true;
     }
 
-    function isWriter() {
-      return isLoggedIn() && getUserRole() == "writer";
-    }
+    // ── PUBLIC CONTENT — existing data, public read ───────────────────
+    match /events/{d}   { allow read: if true; allow write: if isWebmaster(); }
+    match /members/{d}  { allow read: if true; allow write: if isWebmaster(); }
+    match /awards/{d}   { allow read: if true; allow write: if isWebmaster(); }
+    match /blogs/{d}    { allow read: if true; allow write: if isWebmaster(); }
+    match /sigs/{d}     { allow read: if true; allow write: if isWebmaster(); }
+    match /journey/{d}  { allow read: if true; allow write: if isWebmaster(); }
 
-    // AWARDS COLLECTION
-    match /awards/{doc} {
+    // ── NEW CMS — future published content (webmaster approved) ──────
+    match /publishedContent/{section}/items/{docId} {
       allow read: if true;
-      allow write: if isAdmin() || isWriter();
+      allow write: if isWebmaster();
     }
 
-    // EVENTS COLLECTION
-    match /events/{doc} {
+    // ── PENDING CHANGES — core member submissions ─────────────────────
+    match /pendingChanges/{changeId} {
+      // Both Core Members and Webmasters can submit changes (Webmasters use it for audit trails)
+      allow create: if (isWebmaster() || isActiveCoreMember())
+        && request.resource.data.submittedBy == request.auth.uid;
+      
+      // Core members read their own; Webmasters read all
+      allow read: if isWebmaster()
+        || (isLoggedIn() && resource.data.submittedBy == request.auth.uid);
+        
+      // Only webmasters approve/reject
+      allow update: if isWebmaster();
+      
+      // Preserve audit trail — no deletes
+      allow delete: if false;
+    }
+
+    // ── AUDIT LOGS — webmaster read/write, no client deletes ─────────
+    match /auditLogs/{logId} {
+      allow read:   if isWebmaster();
+      allow create: if isWebmaster() || isActiveCoreMember();
+      allow update, delete: if isWebmaster(); // Allow webmaster cleanup if needed
+    }
+
+    match /users/{uid} {
+      // Own profile read (for mustChangePassword check on login)
+      allow read: if isLoggedIn() && request.auth.uid == uid;
+      // Webmasters read all users
+      allow read: if isWebmaster();
+      // Core members can ONLY clear their own mustChangePassword flag after first login
+      allow update: if isLoggedIn()
+        && request.auth.uid == uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['mustChangePassword'])
+        && request.resource.data.mustChangePassword == false;
+      // Only webmasters create / update / delete user records fully
+      allow create, delete: if isWebmaster();
+      allow update: if isWebmaster();
+    }
+
+    // ── PUBLIC FORMS & DATA COLLECTION ──────────────────────────────
+    match /forms/{formId} {
       allow read: if true;
-      allow write: if isAdmin() || isWriter();
+      allow write: if isLoggedIn();
     }
 
-    // MEMBERS COLLECTION
-    match /members/{doc} {
-      allow read: if true;
-      allow write: if isAdmin() || isWriter();
-    }
+    match /contacts/{d}          { allow create: if true; allow read,update,delete: if isWebmaster(); }
+    match /ieee_applications/{d} { allow create: if true; allow read,update,delete: if isWebmaster(); }
 
-    // JOURNEY COLLECTION
-    match /journey/{doc} {
-      allow read: if true;
-      allow write: if isAdmin() || isWriter();
-    }
+    // ── LEGACY ACTIVITY LOG (backward compat) ────────────────────────
+    match /adminActivityLogs/{d} { allow read,write: if isWebmaster(); }
 
-    // BLOGS COLLECTION
-    match /blogs/{doc} {
-      allow read: if true;
-      allow write: if isAdmin() || isWriter();
-    }
-
-    // USERS (RBAC) COLLECTION - Admins only
-    match /users/{userId} {
-      allow read: if isAdmin();
-      allow write: if isAdmin();
-    }
-
-    // ADMIN ACTIVITY LOGS - Admins only
-    match /adminActivityLogs/{doc} {
-      allow read: if isAdmin();
-      allow write: if isLoggedIn(); 
-    }
+    // ── DEFAULT DENY ─────────────────────────────────────────────────
+    match /{document=**} { allow read, write: if false; }
   }
 }

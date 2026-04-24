@@ -16,17 +16,32 @@ const Login = () => {
   const location = useLocation();
   const { toast } = useToast();
 
+  const WEBMASTER_EMAILS = [
+    "ieee.wm@socet.edu.in",
+    "ieeewie.wm@silveroakuni.ac.in",
+    "ieeecs.wm@silveroakuni.ac.in",
+    "ieeesps.wm@silveroakuni.ac.in",
+    "ieeesight.wm@silveroakuni.ac.in",
+  ];
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
     
     try {
-      // 1. Authenticate securely via Firebase Auth
+      // 1. Authenticate via Firebase Auth
       const userCredential = await signInWithEmailAndPassword(auth, email.trim(), password.trim());
       const user = userCredential.user;
 
-      // 2. Query users collection in Firestore for Role check (BY UID)
+      // 2. Webmaster fast-path — identified by email, no Firestore needed
+      if (WEBMASTER_EMAILS.includes(user.email?.toLowerCase().trim() ?? "")) {
+        toast({ title: "Webmaster Access Granted", description: `Welcome, ${user.email}!` });
+        navigate("/ieee-admin-portal-sou-2025");
+        return;
+      }
+
+      // 3. Core member — verify in Firestore
       if (!db) throw new Error("Firestore not initialized.");
       
       const userRef = doc(db, 'users', user.uid);
@@ -34,35 +49,35 @@ const Login = () => {
 
       if (!userSnap.exists()) {
         await signOut(auth);
-        setError("Unauthorized access. Your profile was not found in the database.");
-        toast({
-          title: "Access Denied",
-          description: "You are not registered in our database.",
-          variant: "destructive",
-        });
+        setError("Your account was not found. Contact a Webmaster to get access.");
         return;
       }
 
       const userData = userSnap.data();
       const role = userData.role;
-      const name = userData.name || "User";
+      const isActive = userData.isActive;
+      const name = userData.displayName || userData.name || "Member";
 
-      // 3. Role-Based Redirection
-      if (role === 'admin') {
-        toast({
-          title: "Admin Access Granted",
-          description: `Welcome back, ${name}!`,
-        });
+      if (!isActive) {
+        await signOut(auth);
+        setError("Your account has been deactivated. Contact a Webmaster.");
+        return;
+      }
+
+      // 4. Force password change check
+      if (userData.mustChangePassword) {
+        toast({ title: "Action Required", description: "Please set your new password." });
         navigate("/ieee-admin-portal-sou-2025");
-      } else if (role === 'writer') {
-        toast({
-          title: "Writer Access Granted",
-          description: `Welcome, ${name}! Redirecting to Blog tool...`,
-        });
-        navigate("/write-blog");
+        return;
+      }
+
+      // 5. Allow core_member (and legacy roles)
+      if (role === 'core_member' || role === 'webmaster' || role === 'admin' || role === 'writer') {
+        toast({ title: "Access Granted", description: `Welcome, ${name}!` });
+        navigate("/ieee-admin-portal-sou-2025");
       } else {
         await signOut(auth);
-        setError("Invalid role assignment. Please contact lead admin.");
+        setError("Invalid role. Please contact a Webmaster.");
       }
       
     } catch (error: any) {

@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { TypingAnimation } from "@/components/TypingAnimation";
 import { Skeleton } from "@/components/ui/skeleton";
 
-// ─── Types ─────────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 interface FirestoreAward {
     id: string;
@@ -25,12 +25,12 @@ interface FirestoreAward {
 
 type Tab = "student" | "awards" | "branch";
 
-// ─── Mock Data ─────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Mock Data â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const studentData = [
     {
         id: "s1",
-        title: "1st Place – Smart India Hackathon 2024",
+        title: "1st Place â€“ Smart India Hackathon 2024",
         studentName: "Arjun Mehta",
         year: "2024",
         image: "https://placehold.co/400x220/3b82f6/ffffff?text=Hackathon+Win",
@@ -38,7 +38,7 @@ const studentData = [
     },
     {
         id: "s2",
-        title: "Best Paper – IEEE R10 Conference",
+        title: "Best Paper â€“ IEEE R10 Conference",
         studentName: "Priya Shah",
         year: "2024",
         image: "https://placehold.co/400x220/6366f1/ffffff?text=Best+Paper",
@@ -46,7 +46,7 @@ const studentData = [
     },
     {
         id: "s3",
-        title: "Runner-up – SSIT Global Hackathon",
+        title: "Runner-up â€“ SSIT Global Hackathon",
         studentName: "Rahul Patel",
         year: "2023",
         image: "https://placehold.co/400x220/8b5cf6/ffffff?text=SSIT+Hackathon",
@@ -62,7 +62,7 @@ const studentData = [
     },
     {
         id: "s5",
-        title: "Top 10 – IIT Bombay Techfest",
+        title: "Top 10 â€“ IIT Bombay Techfest",
         studentName: "Dev Kapoor",
         year: "2023",
         image: "https://placehold.co/400x220/10b981/ffffff?text=Techfest+Top10",
@@ -105,7 +105,7 @@ const branchData = [
     },
 ];
 
-// ─── Tab pill component ────────────────────────────────────────────────────────
+// â”€â”€â”€ Tab pill component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
     { id: "student", label: "Student", icon: <GraduationCap className="h-4 w-4" /> },
@@ -113,7 +113,7 @@ const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
     { id: "branch", label: "Branch Achievement", icon: <Globe className="h-4 w-4" /> },
 ];
 
-// ─── Main Component ────────────────────────────────────────────────────────────
+// â”€â”€â”€ Main Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 export default function Achievement() {
     const [activeTab, setActiveTab] = useState<Tab>("student");
@@ -144,7 +144,7 @@ export default function Achievement() {
                 
                 setAwards(data);
             } catch {
-                // silently fail — page still shows mock data for other tabs
+                // silently fail â€” page still shows mock data for other tabs
             } finally {
                 setLoading(false);
             }
@@ -171,7 +171,7 @@ export default function Achievement() {
 
     return (
         <PageLayout>
-            {/* ── Hero Header ── */}
+            {/* â”€â”€ Hero Header â”€â”€ */}
             <section className="relative pt-32 pb-14 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-950 dark:to-indigo-950 overflow-hidden">
                 <div className="absolute inset-0 [mask-image:radial-gradient(ellipse_at_center,white,transparent_70%)] dark:opacity-30" />
                 <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
@@ -183,12 +183,12 @@ export default function Achievement() {
                         Achievement
                     </h1>
                     <p className="text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed">
-                        <TypingAnimation text={"Celebrating every milestone — from individual wins to branch-level honours."} />
+                        <TypingAnimation text={"Celebrating every milestone â€” from individual wins to branch-level honours."} />
                     </p>
                 </div>
             </section>
 
-            {/* ── Pill Tabs ── */}
+            {/* â”€â”€ Pill Tabs â”€â”€ */}
             <div className="sticky top-16 z-30 bg-background/80 backdrop-blur-md border-b border-border/50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-center">
                     <div className="inline-flex items-center gap-1 bg-muted rounded-full p-1 shadow-inner">
@@ -211,12 +211,12 @@ export default function Achievement() {
                 </div>
             </div>
 
-            {/* ── Tab Content ── */}
+            {/* â”€â”€ Tab Content â”€â”€ */}
             <div
                 className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 transition-opacity duration-200 ${visible ? "opacity-100" : "opacity-0"
                     }`}
             >
-                {/* ── TAB 1: Student ── */}
+                {/* â”€â”€ TAB 1: Student â”€â”€ */}
                 {activeTab === "student" && (
                     <section>
                         <div className="flex items-center gap-3 mb-8">
@@ -270,7 +270,7 @@ export default function Achievement() {
                     </section>
                 )}
 
-                {/* ── TAB 2: Awards (Firebase) ── */}
+                {/* â”€â”€ TAB 2: Awards (Firebase) â”€â”€ */}
                 {activeTab === "awards" && (
                     <section>
                         <div className="flex items-center gap-3 mb-8">
@@ -369,7 +369,7 @@ export default function Achievement() {
                     </section>
                 )}
 
-                {/* ── TAB 3: Branch Achievement ── */}
+                {/* â”€â”€ TAB 3: Branch Achievement â”€â”€ */}
                 {activeTab === "branch" && (
                     <section>
                         <div className="flex items-center gap-3 mb-8">

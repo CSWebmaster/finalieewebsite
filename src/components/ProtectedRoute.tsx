@@ -3,13 +3,18 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { Loader2 } from "lucide-react";
 
+type AllowedRole = 'webmaster' | 'core_member' | 'admin' | 'writer';
+
 interface ProtectedRouteProps {
   children: ReactNode;
-  allowedRoles?: ('admin' | 'writer')[];
+  allowedRoles?: AllowedRole[];
 }
 
-const ProtectedRoute = ({ children, allowedRoles = ['admin'] }: ProtectedRouteProps) => {
-  const { currentUser, userData, loading, error } = useAuth();
+const ProtectedRoute = ({
+  children,
+  allowedRoles = ['webmaster', 'core_member', 'admin', 'writer'],
+}: ProtectedRouteProps) => {
+  const { currentUser, userData, loading, isWebmaster } = useAuth();
 
   if (loading) {
     return (
@@ -22,21 +27,21 @@ const ProtectedRoute = ({ children, allowedRoles = ['admin'] }: ProtectedRoutePr
     );
   }
 
-  // 1. Check if user is logged in
+  // 1. Must be logged in
   if (!currentUser) {
-    console.warn("[PROTECTED_ROUTE] No active session. Redirecting to login.");
     return <Navigate to="/login" replace />;
   }
 
-  // 2. Check for Role Authorization
-  if (!userData || !allowedRoles.includes(userData.role)) {
-    console.warn(`[PROTECTED_ROUTE] Unauthorized access attempt by ${currentUser.email} (Role: ${userData?.role || 'none'}). Required: ${allowedRoles.join(', ')}`);
-    
-    // If user is authenticated but not authorized for this specific area
-    return <Navigate to="/login" state={{ error: "Unauthorized access: You don't have the required role for this page." }} replace />;
+  // 2. Webmasters go through — identified purely by email in useAuth, no Firestore needed
+  if (isWebmaster) {
+    return <>{children}</>;
   }
 
-  // 3. Authorized: Render children
+  // 3. Core members — userData must be loaded and role must be in allowedRoles
+  if (!userData || !allowedRoles.includes(userData.role as AllowedRole)) {
+    return <Navigate to="/login" state={{ error: "Unauthorized access." }} replace />;
+  }
+
   return <>{children}</>;
 };
 

@@ -154,7 +154,7 @@ export default function Newsletter() {
                       key={item.id}
                       className="glass rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1 border border-gray-200 dark:border-gray-700 flex flex-col"
                     >
-                      {/* Image — fully visible, no crop */}
+                      {/* Image â€” fully visible, no crop */}
                       <div className="relative bg-slate-50 dark:bg-slate-900 border-b border-gray-200 dark:border-gray-700 flex items-center justify-center overflow-hidden" style={{ aspectRatio: '4/3' }}>
                         {img ? (
                           <img

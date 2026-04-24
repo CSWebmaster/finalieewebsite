@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, addDoc, updateDoc, doc } from 'firebase/firestore';
 import MultiImageInput from './MultiImageInput';
 import ImageUrlInput from './ImageUrlInput';
+import { submitContentChange } from '@/lib/cms-service';
+import { useAuth } from '@/hooks/useAuth';
 
 interface SIGModalProps {
   sig?: any;
@@ -12,6 +13,7 @@ interface SIGModalProps {
 }
 
 export default function SIGModal({ sig, isOpen, onClose, onSave }: SIGModalProps) {
+  const { user } = useAuth();
   const [title, setTitle] = useState(sig?.title || '');
   const [details, setDetails] = useState(sig?.details || '');
   const [images, setImages] = useState<string[]>(() => {
@@ -71,7 +73,18 @@ export default function SIGModal({ sig, isOpen, onClose, onSave }: SIGModalProps
     }
   }, [sig, isOpen]);
 
+  const { userData } = useAuth();
+  const [loading, setLoading] = useState(false);
+
+  // ... (rest of states already defined)
+
   const handleSubmit = async () => {
+    if (!userData) {
+      alert("Authentication required.");
+      return;
+    }
+
+    setLoading(true);
     const cleanImages = images.map(i => i.trim()).filter(i => i !== '');
     const sigData = {
       title,
@@ -87,21 +100,30 @@ export default function SIGModal({ sig, isOpen, onClose, onSave }: SIGModalProps
       meetingFrequency,
       openTo,
       themeColor,
-      logoUrl: logoUrl.trim()
+      logoUrl: logoUrl.trim(),
+      updatedAt: new Date().toISOString()
     };
 
     try {
-      if (sig?.id) {
-        // Update existing
-        await updateDoc(doc(db, 'sigs', sig.id), sigData);
-      } else {
-        // Create new
-        await addDoc(collection(db, 'sigs'), sigData);
-      }
-      onSave(sigData);
+      await submitContentChange(
+        userData.uid,
+        userData.name || userData.displayName || "Unknown",
+        "sigs",
+        sigData,
+        sig?.id || null,
+        userData.email,
+        userData.role
+      );
+      
+      const isDirect = userData.role === 'webmaster';
+      alert(isDirect ? "SIG updated successfully!" : "Submission successful! Your changes are pending admin approval.");
+      if (onSave) onSave(sigData);
       onClose();
-    } catch (error) {
-      console.error('Error saving SIG:', error);
+    } catch (error: any) {
+      console.error('Error saving SIG request:', error);
+      alert("Failed to submit changes: " + error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -246,7 +268,7 @@ export default function SIGModal({ sig, isOpen, onClose, onSave }: SIGModalProps
             onClick={handleSubmit}
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
           >
-            Save
+            {loading ? "Saving..." : (userData.role === 'webmaster' ? 'Save' : 'Submit for Approval')}
           </button>
         </div>
       </div>

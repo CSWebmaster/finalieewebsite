@@ -1,8 +1,9 @@
-export type BlogCategory = "blog" | "article";
+export type BlogCategory = "blog" | "article" | "research";
 
 export const BLOG_CATEGORIES: { value: BlogCategory; label: string }[] = [
   { value: "blog", label: "Blog" },
   { value: "article", label: "Article" },
+  { value: "research", label: "Research Paper" },
 ];
 
 export interface Blog {

@@ -47,7 +47,11 @@ export default function SIGs() {
   useEffect(() => {
     const fetchSIGs = async () => {
       try {
-        const q = query(collection(db, "sigs"), orderBy("order", "asc"));
+        // ── Reverted to legacy collection: sigs ──
+        const q = query(
+          collection(db, "sigs"),
+          orderBy("order", "asc")
+        );
         const snap = await getDocs(q);
         const data = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as SIGItem[];
         setSigItems(data);
@@ -118,7 +122,7 @@ export default function SIGs() {
       window.removeEventListener("touchstart", handleTouchStart);
       window.removeEventListener("touchmove", handleTouchMove);
     };
-  }, [sigItems]); // removed currentIndex dep — using ref instead to avoid stale closure
+  }, [sigItems]); // removed currentIndex dep â€” using ref instead to avoid stale closure
 
   const SIGCard = ({ item, index }: { item: SIGItem, index: number }) => {
     const diff = index - currentIndex;

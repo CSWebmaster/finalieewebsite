@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { collection, addDoc, doc, updateDoc, serverTimestamp } from "firebase/firestore";
-import { db } from "../firebase";
+import { serverTimestamp } from "firebase/firestore";
 import { Blog, BlogCategory, BLOG_CATEGORIES } from "../types/blog";
 import MultiImageInput from "./MultiImageInput";
 import DynamicLinkInput from "./DynamicLinkInput";
 import ImageUrlInput from "./ImageUrlInput";
+import { useAuth } from "../hooks/useAuth";
+import { submitContentChange } from "../lib/cms-service";
 
 const validateGithub = (link: string) => {
   const urlPattern = /^https?:\/\/(www\.)?github\.com\//i;
@@ -36,6 +37,7 @@ const BlogModal: React.FC<BlogModalProps> = ({
   setSuccess,
   setError,
 }) => {
+  const { userData } = useAuth();
   const [loading, setLoading] = useState(false);
 
   // Static fields
@@ -49,6 +51,7 @@ const BlogModal: React.FC<BlogModalProps> = ({
 
   // Dynamic arrays
   const [images, setImages] = useState<string[]>([""]);
+  const [imagePositions, setImagePositions] = useState<string>(""); // Comma separated indices
   const [githubLinks, setGithubLinks] = useState<string[]>([]);
   const [youtubeLinks, setYoutubeLinks] = useState<string[]>([]);
 
@@ -60,6 +63,7 @@ const BlogModal: React.FC<BlogModalProps> = ({
       setAuthorName(blog.author?.name || blog.author_name || "");
       setAuthorImage(blog.author?.image || "");
       setImages(blog.images?.length > 0 ? blog.images : [""]);
+      setImagePositions(blog.imagePositions?.join(", ") || "");
       setGithubLinks(blog.githubLinks || []);
       setYoutubeLinks(blog.youtubeLinks || []);
     } else {
@@ -74,6 +78,7 @@ const BlogModal: React.FC<BlogModalProps> = ({
     setAuthorName("");
     setAuthorImage("");
     setImages([""]);
+    setImagePositions("");
     setGithubLinks([]);
     setYoutubeLinks([]);
   };
@@ -107,21 +112,24 @@ const BlogModal: React.FC<BlogModalProps> = ({
           image: authorImage.trim(),
         },
         images: cleanArray(images),
+        imagePositions: imagePositions.split(",").map(s => parseInt(s.trim())).filter(n => !isNaN(n)),
         githubLinks: cleanGithub,
         youtubeLinks: cleanYoutube,
-        status: blog?.status || "approved", // Admins actively approve their own blogs automatically
-        updated_at: serverTimestamp(),
-        ...(blog ? {} : { created_at: serverTimestamp() }),
       };
 
-      if (blog?.id) {
-        await updateDoc(doc(db, "blogs", blog.id), blogData as any);
-        setSuccess("Blog updated successfully!");
-      } else {
-        await addDoc(collection(db, "blogs"), blogData);
-        setSuccess("Blog created successfully!");
-      }
+      if (!userData) throw new Error("Authentication required.");
 
+      await submitContentChange(
+        userData.uid,
+        userData.name || "Unknown Admin",
+        "blogs",
+        blogData,
+        blog?.id || null,
+        userData.email,
+        userData.role
+      );
+
+      setSuccess(blog ? "Blog update requested!" : "Blog submission sent for review!");
       resetForm();
       onClose();
     } catch (err: any) {
@@ -235,6 +243,21 @@ const BlogModal: React.FC<BlogModalProps> = ({
                 onChange={setImages}
                 label="Blog Images"
               />
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <label className="block text-gray-700 font-medium mb-1.5 text-sm">
+                  Image Placements (Paragraph indices, e.g: 2, 4, 6)
+                </label>
+                <input 
+                  type="text" 
+                  className="w-full border border-gray-300 rounded-md shadow-sm px-3 py-1.5 text-xs focus:ring-blue-500 focus:border-blue-500"
+                  placeholder="Leave empty for auto-distribution"
+                  value={imagePositions}
+                  onChange={(e) => setImagePositions(e.target.value)}
+                />
+                <p className="text-[10px] text-gray-500 mt-1">
+                  Specify which paragraph each image should appear after.
+                </p>
+              </div>
             </div>
 
             {/* GitHub Links */}

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Search, Linkedin } from "lucide-react";
+import { Search } from "lucide-react";
+import LinkedInIcon from "@/components/LinkedInIcon";
 import PageLayout from "@/components/PageLayout";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -338,7 +339,7 @@ export default function Members() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
                       <h3 className="font-bold text-lg truncate">{member.name}</h3>
-                      <Linkedin className="h-4 w-4 text-primary flex-shrink-0" />
+                      <LinkedInIcon href={member.linkedinUrl} />
                     </div>
                     {member.type !== "faculty" && (
                       <Badge variant={getBadgeVariant(member.type)} className={`mt-1 ${getBadgeStyle(member.type)}`}>

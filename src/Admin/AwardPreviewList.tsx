@@ -13,14 +13,12 @@ import { Button } from "@/components/ui/button";
 
 interface AwardsPreviewListProps {
   onEdit: (award: any) => void;
-  onDelete: (id: string) => void;
   setSuccess: (message: string) => void;
   setError: (message: string) => void;
 }
 
 const AwardPreviewList: React.FC<AwardsPreviewListProps> = ({
   onEdit,
-  onDelete,
   setSuccess,
   setError
 }) => {
@@ -35,12 +33,12 @@ const AwardPreviewList: React.FC<AwardsPreviewListProps> = ({
   const [selectedAward, setSelectedAward] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
-  // Map of tab value → display label (matching the `type` field saved by AwardModal)
+  // Map of tab value â†’ display label (matching the `type` field saved by AwardModal)
   const CATEGORY_TABS = [
     { value: 'all',        label: 'All Achievements' },
     { value: 'branch',     label: 'Branch Achievement' },
     { value: 'student',    label: 'Student Achievement' },
-    { value: 'newsletter', label: '📰 Newsletter' },
+    { value: 'newsletter', label: 'ðŸ“° Newsletter' },
   ];
 
   const NEWSLETTER_SUB_TABS = [
@@ -53,6 +51,7 @@ const AwardPreviewList: React.FC<AwardsPreviewListProps> = ({
   useEffect(() => {
     setLoading(true);
     try {
+      // ── Reverted to legacy collection: awards ──
       const awardsQuery = query(
         collection(db, "awards"),
         orderBy("year", "desc")
@@ -68,38 +67,21 @@ const AwardPreviewList: React.FC<AwardsPreviewListProps> = ({
           }));
           setAwards(awardsList);
           setLoading(false);
-          console.log("Fetched awards:", awardsList.length);
-          // Debug: log the first award to check structure
-          if (awardsList.length > 0) {
-            console.log("First award data:", awardsList[0]);
-          }
         },
         (err) => {
-          setError(`Error fetching awards: ${err.message}`);
-          console.error("Awards fetch error:", err);
+          setError(`CMS Access denied: ${err.message}`);
+          console.error("[AwardsFetch] error:", err);
           setLoading(false);
         }
       );
 
-      // Clean up the listener when component unmounts
       return () => unsubscribe();
     } catch (err: any) {
-      setError(`Error setting up awards listener: ${err.message}`);
-      console.error("Awards listener error:", err);
+      setError(`System error: ${err.message}`);
       setLoading(false);
     }
   }, [setError]);
 
-  const handleDelete = async (awardId: string) => {
-    try {
-      await deleteDoc(doc(db, "awards", awardId));
-      setSuccess("Award deleted successfully!");
-      setConfirmDelete(null);
-      // No need to fetch again - onSnapshot listener will update automatically
-    } catch (err: any) {
-      setError(`Error deleting award: ${err.message}`);
-    }
-  };
 
   const handleEdit = (award: any) => {
     onEdit(award);
@@ -245,68 +227,9 @@ const AwardPreviewList: React.FC<AwardsPreviewListProps> = ({
                     </svg>
                   </button>
 
-                  {confirmDelete === award.id ? (
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => handleDelete(award.id)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-full transition-colors"
-                        title="Confirm Delete"
-                      >
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M5 13l4 4L19 7"
-                          />
-                        </svg>
-                      </button>
-                      <button
-                        onClick={() => setConfirmDelete(null)}
-                        className="p-2 text-gray-500 hover:bg-gray-50 rounded-full transition-colors"
-                        title="Cancel"
-                      >
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M6 18L18 6M6 6l12 12"
-                          />
-                        </svg>
-                      </button>
+                   <div className="flex items-center space-x-2">
+                       {/* Deletion restricted to moderation queue */}
                     </div>
-                  ) : (
-                    <button
-                      onClick={() => setConfirmDelete(award.id)}
-                      className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors"
-                      title="Delete"
-                    >
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                        />
-                      </svg>
-                    </button>
-                  )}
                 </div>
               </div>
             </div>
@@ -328,7 +251,7 @@ const AwardPreviewList: React.FC<AwardsPreviewListProps> = ({
                     <span className="inline-block bg-blue-100 text-blue-700 px-2 py-1 text-sm font-medium rounded-md mb-2">
                       {selectedAward.type === 'branch' ? 'Branch Achievement' : 
                        selectedAward.type === 'student' ? 'Student Achievement' : 
-                       selectedAward.type === 'newsletter' ? '📰 Newsletter' : 'Achievement'}
+                       selectedAward.type === 'newsletter' ? 'ðŸ“° Newsletter' : 'Achievement'}
                     </span>
                   )}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
