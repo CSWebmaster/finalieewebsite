@@ -1,5 +1,5 @@
 import React, { useState, useEffect, Suspense, lazy } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "@/lib/theme-provider";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -97,6 +97,16 @@ const SmartRouteLoader = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
+// Component to conditionally hide AI Assistant on Admin routes
+const ConditionalAIAssistant = () => {
+  const location = useLocation();
+  const isAdminPath = location.pathname.startsWith('/ieee-admin-portal-sou-2025') || 
+                      location.pathname.startsWith('/authentication');
+  
+  if (isAdminPath) return null;
+  return <AIAssistant />;
+};
+
 // Simple Error Boundary
 class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean}> {
   constructor(props: {children: React.ReactNode}) {
@@ -142,7 +152,7 @@ function App() {
               <ScrollRevealProvider />
               <ScrollProgressBar />
               <TopLoader />
-              <AIAssistant />
+              <ConditionalAIAssistant />
               <SmartRouteLoader>
                 <Routes>
                   {/* Main Pages */}
