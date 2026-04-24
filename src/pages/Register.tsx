@@ -175,7 +175,16 @@ export default function Register() {
                     <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-xs mx-auto">Thank you for registering. You will receive a confirmation email shortly.</p>
                     <Button onClick={() => navigate('/events')} variant="outline" className="rounded-xl">Browse More Events</Button>
                   </div>
-                ) : event.registrationLink ? (
+                ) : (event.registrationFormId || !event.registrationLink) ? (
+                  <DynamicForm 
+                    formConfig={formConfig || defaultForm} 
+                    formType="Event Registration"
+                    eventId={event.id}
+                    eventName={event.name || event.title}
+                    isPreview={id === 'preview'}
+                    onSuccess={() => setSubmitted(true)}
+                  />
+                ) : (
                   <div className="py-10 text-center space-y-6">
                      <p className="text-slate-600 dark:text-slate-400">
                        Registration for this event is handled externally. Please click the button below to complete your registration.
@@ -187,15 +196,6 @@ export default function Register() {
                       Complete Registration on External Portal
                     </Button>
                   </div>
-                ) : (
-                  <DynamicForm 
-                    formConfig={formConfig || defaultForm} 
-                    formType="Event Registration"
-                    eventId={event.id}
-                    eventName={event.name || event.title}
-                    isPreview={id === 'preview'}
-                    onSuccess={() => setSubmitted(true)}
-                  />
                 )}
             </div>
 

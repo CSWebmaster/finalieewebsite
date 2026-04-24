@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { serverTimestamp } from "firebase/firestore";
+import { serverTimestamp, collection, query, orderBy, getDocs, where } from "firebase/firestore";
 import MultiImageInput from "./MultiImageInput";
+import { db } from "../firebase";
 import { useAuth } from "../hooks/useAuth";
 import { submitContentChange } from "../lib/cms-service";
 
@@ -29,8 +30,24 @@ const EventModal: React.FC<EventModalProps> = ({ isOpen, onClose, event, setSucc
   const [registrationEnabled, setRegistrationEnabled] = useState<boolean>(false);
   const [registrationFormId, setRegistrationFormId] = useState<string>("");
   const [registrationLink, setRegistrationLink] = useState<string>("");
+  const [availableForms, setAvailableForms] = useState<any[]>([]);
 
   useEffect(() => {
+    const fetchForms = async () => {
+      try {
+        const q = query(
+          collection(db, "forms"),
+          where("isActive", "==", true),
+          orderBy("createdAt", "desc")
+        );
+        const snap = await getDocs(q);
+        setAvailableForms(snap.docs.map(doc => ({ id: doc.id, title: doc.data().title })));
+      } catch (err) {
+        console.warn("Failed to fetch forms for dropdown:", err);
+      }
+    };
+    fetchForms();
+
     if (event) {
       setEventName(event.name || "");
       setEventDate(event.date || "");
@@ -187,15 +204,22 @@ const EventModal: React.FC<EventModalProps> = ({ isOpen, onClose, event, setSucc
 
               {registrationEnabled && (
                 <div className="animate-in slide-in-from-top-1 duration-200">
-                  <label className="block text-gray-600 text-xs font-semibold mb-1 uppercase tracking-wider">Registration Form ID (Optional)</label>
-                  <input
-                    type="text"
-                    className="w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 text-sm focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="e.g., workshop-registration-2026"
+                  <label className="block text-gray-600 text-xs font-semibold mb-1 uppercase tracking-wider">Select Registration Form</label>
+                  <select
+                    className="w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 text-sm focus:ring-blue-500 focus:border-blue-500 bg-white"
                     value={registrationFormId}
                     onChange={(e) => setRegistrationFormId(e.target.value)}
-                  />
-                  <p className="text-[10px] text-blue-500 mt-1">If left blank, a default registration form will be used.</p>
+                  >
+                    <option value="">System Default Form</option>
+                    {availableForms.map(form => (
+                      <option key={form.id} value={form.id}>{form.title}</option>
+                    ))}
+                  </select>
+                  <p className="text-[10px] text-blue-500 mt-1">
+                    {registrationFormId 
+                      ? "Custom form template selected." 
+                      : "Using the default registration system."}
+                  </p>
                 </div>
               )}
 

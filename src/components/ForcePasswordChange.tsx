@@ -16,6 +16,7 @@ export default function ForcePasswordChange({ uid, email, onComplete }: ForcePas
   const [newPassword, setNewPassword]         = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showNew, setShowNew]                 = useState(false);
+  const [showConfirm, setShowConfirm]         = useState(false);
   const [loading, setLoading]                 = useState(false);
   const [error, setError]                     = useState('');
 
@@ -144,15 +145,22 @@ export default function ForcePasswordChange({ uid, email, onComplete }: ForcePas
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                 <Input
-                  type="password"
+                  type={showConfirm ? 'text' : 'password'}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className={`pl-10 bg-white/5 border-white/10 text-white placeholder:text-slate-500 ${
+                  className={`pl-10 pr-10 bg-white/5 border-white/10 text-white placeholder:text-slate-500 ${
                     confirmPassword && confirmPassword !== newPassword ? 'border-red-500/60' : ''
                   }`}
                   placeholder="Repeat new password"
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirm(!showConfirm)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
+                >
+                  {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
               {confirmPassword && confirmPassword !== newPassword && (
                 <p className="text-xs text-red-400 mt-1">Passwords don't match</p>

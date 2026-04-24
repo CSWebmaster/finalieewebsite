@@ -12,6 +12,12 @@ import { Card } from '@/components/ui/card';
 
 interface DashboardProps {
   navigateTo: (section: string) => void;
+  userRole?: string;
+  userEmail?: string;
+  // Legacy props from Admin.tsx that were being passed
+  setSelectedEvent?: (e: any) => void;
+  setSelectedAward?: (a: any) => void;
+  setSelectedMember?: (m: any) => void;
 }
 
 interface Stats {
@@ -22,7 +28,11 @@ interface Stats {
   pending: number;
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ navigateTo }) => {
+const Dashboard: React.FC<DashboardProps> = ({ 
+  navigateTo, 
+  userRole, 
+  userEmail 
+}) => {
   const [stats, setStats] = useState<Stats>({ events: 0, members: 0, awards: 0, blogs: 0, pending: 0 });
   const [pendingItems, setPendingItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -58,23 +68,44 @@ const Dashboard: React.FC<DashboardProps> = ({ navigateTo }) => {
     };
 
     // 2. Listen for Pending Changes (Real-time)
-    const qPending = query(
-      collection(db, "pendingChanges"),
-      where("status", "==", "pending"),
-      limit(5)
-    );
+    // Core members only see their OWN pending items
+    let qPending;
+    if (userRole === 'core_member' && userEmail) {
+      qPending = query(
+        collection(db, "pendingChanges"),
+        where("submittedByEmail", "==", userEmail.toLowerCase()),
+        limit(20) // Slightly larger limit to filter status client-side
+      );
+    } else {
+      qPending = query(
+        collection(db, "pendingChanges"),
+        where("status", "==", "pending"),
+        limit(10)
+      );
+    }
 
     const unsubscribePending = onSnapshot(qPending, (snapshot) => {
-      const items = snapshot.docs.map(doc => ({
+      let items = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       }));
+
+      // Client-side filter for status if we simplified the query
+      if (userRole === 'core_member') {
+        items = items.filter((item: any) => item.status === 'pending').slice(0, 5);
+      }
+
       setPendingItems(items);
-      setStats(prev => ({ ...prev, pending: snapshot.size }));
+      setStats(prev => ({ ...prev, pending: items.length }));
       setLoading(false);
     }, (err) => {
       console.error("[Dashboard] Pending listener error:", err);
-      setError("Failed to sync pending changes. Role permission might be missing.");
+      // Fallback: If listening to all fails (maybe role changed), just show 0
+      if (userRole === 'core_member') {
+        setError("Failed to sync your pending changes. Please try logging out and back in.");
+      } else {
+        setError("Failed to sync pending changes. Role permission might be missing.");
+      }
       setLoading(false);
     });
 
@@ -156,7 +187,9 @@ const Dashboard: React.FC<DashboardProps> = ({ navigateTo }) => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <CheckSquare className="h-5 w-5 text-blue-600" />
-              <h2 className="text-xl font-bold">Pending Approvals</h2>
+              <h2 className="text-xl font-bold">
+                {userRole === 'core_member' ? "My Pending Submissions" : "Pending Approvals"}
+              </h2>
               <Badge variant="secondary" className="bg-blue-100 text-blue-700 hover:bg-blue-100 border-none">
                 {stats.pending} Items
               </Badge>
@@ -164,7 +197,7 @@ const Dashboard: React.FC<DashboardProps> = ({ navigateTo }) => {
             <Button 
                 variant="ghost" 
                 size="sm" 
-                onClick={() => navigateTo('approvals')}
+                onClick={() => navigateTo(userRole === 'core_member' ? 'my-submissions' : 'approvals')}
                 className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
             >
               View All <ArrowRight className="h-4 w-4 ml-1" />
@@ -209,10 +242,10 @@ const Dashboard: React.FC<DashboardProps> = ({ navigateTo }) => {
                     <Button 
                       size="sm" 
                       variant="ghost" 
-                      onClick={() => navigateTo('approvals')}
+                      onClick={() => navigateTo(userRole === 'core_member' ? 'my-submissions' : 'approvals')}
                       className="opacity-0 group-hover:opacity-100 transition-opacity"
                     >
-                      Process <ChevronRight className="h-4 w-4 ml-1" />
+                      {userRole === 'core_member' ? 'View Status' : 'Process'} <ChevronRight className="h-4 w-4 ml-1" />
                     </Button>
                   </div>
                 </Card>
@@ -242,9 +275,9 @@ const Dashboard: React.FC<DashboardProps> = ({ navigateTo }) => {
                 <div className="pt-2">
                     <Button 
                         className="w-full bg-blue-600 hover:bg-blue-700 text-xs font-bold uppercase tracking-tighter"
-                        onClick={() => navigateTo('history')}
+                        onClick={() => navigateTo(userRole === 'core_member' ? 'my-submissions' : 'history')}
                     >
-                        View Audit History
+                        {userRole === 'core_member' ? 'My Recent Propoasls' : 'View Audit History'}
                     </Button>
                 </div>
             </div>

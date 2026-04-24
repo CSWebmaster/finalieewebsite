@@ -97,9 +97,16 @@ const Admin = () => {
   // ── Navigation helper ────────────────────────────────────────────────────
   const handleNavigate = (section: string) => {
     const tabMap: Record<string, string> = {
-      events: "events", awards: "awards", members: "members",
-      journey: "journey", users: "users", approvals: "approvals",
-      history: "history", submit: "submit", mysubmissions: "mysubmissions",
+      events: "events", 
+      awards: "awards", 
+      members: "members",
+      journey: "journey", 
+      users: "users", 
+      approvals: "approvals", 
+      history: "history", 
+      submit: "submit", 
+      "my-submissions": "my-submissions", 
+      mysubmissions: "my-submissions",
     };
     if (tabMap[section]) { setActiveTab(tabMap[section]); return; }
 
@@ -149,6 +156,8 @@ const Admin = () => {
         {activeTab === "dashboard" && (
           <Dashboard
             navigateTo={handleNavigate}
+            userRole="core_member"
+            userEmail={userData.email}
             setSelectedEvent={setSelectedEvent}
             setSelectedAward={setSelectedAward}
             setSelectedMember={setSelectedMember}
@@ -237,6 +246,8 @@ const Admin = () => {
       {activeTab === "dashboard" && (
         <Dashboard
           navigateTo={handleNavigate}
+          userRole="webmaster"
+          userEmail={userData.email}
           setSelectedEvent={setSelectedEvent}
           setSelectedAward={setSelectedAward}
           setSelectedMember={setSelectedMember}

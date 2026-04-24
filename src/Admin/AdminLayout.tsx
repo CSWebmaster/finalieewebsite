@@ -43,18 +43,33 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
 
   // 1. Unified Pending changes listener (for both Sidebar and Mobile)
   useEffect(() => {
-    if (!db) return;
-    const q = query(
-      collection(db, "pendingChanges"), 
-      where("status", "==", "pending")
-    );
+    if (!db || !auth.currentUser) return;
+    
+    let q;
+    if (userRole === 'core_member') {
+      q = query(
+        collection(db, "pendingChanges"), 
+        where("submittedByEmail", "==", auth.currentUser.email.toLowerCase())
+      );
+    } else {
+      q = query(
+        collection(db, "pendingChanges"), 
+        where("status", "==", "pending")
+      );
+    }
+
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      setPendingChangesCount(snapshot.size);
+      if (userRole === 'core_member') {
+        const pendingCount = snapshot.docs.filter(d => d.data().status === 'pending').length;
+        setPendingChangesCount(pendingCount);
+      } else {
+        setPendingChangesCount(snapshot.size);
+      }
     }, (err) => {
       console.warn("[AdminLayout] Pending changes listener error:", err.message);
     });
     return () => unsubscribe();
-  }, []);
+  }, [userRole]);
   
   const handleLogout = async () => {
     try {

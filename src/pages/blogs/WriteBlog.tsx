@@ -6,7 +6,7 @@ import PageLayout from "@/components/PageLayout";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Send, Loader2, X, ShieldCheck, Mail, Lock } from "lucide-react";
+import { BookOpen, Send, Loader2, X, ShieldCheck, Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { BLOG_CATEGORIES, BlogCategory } from "@/types/blog";
@@ -42,6 +42,7 @@ export default function WriteBlog() {
   const [isVerifying, setIsVerifying] = useState(false);
   const [authorData, setAuthorData] = useState<any>(null);
   const [verifyError, setVerifyError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -154,8 +155,15 @@ export default function WriteBlog() {
                 <label className="text-sm font-medium ml-1">Password</label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input type="password" placeholder="••••••••" className="pl-10"
+                  <Input type={showPassword ? "text" : "password"} placeholder="••••••••" className="pl-10 pr-10"
                     value={verifyPassword} onChange={(e) => setVerifyPassword(e.target.value)} required />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
                 </div>
               </div>
               <Button type="submit" className="w-full bg-[#00629B]" disabled={isVerifying}>

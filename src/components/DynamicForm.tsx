@@ -140,6 +140,8 @@ export default function DynamicForm({ formConfig, formType, eventName, isPreview
         body: JSON.stringify({
           secret: SHEETS_SECRET,
           type: formType,
+          formId: formConfig.id,
+          formTitle: formConfig.title,
           eventName: eventName || formConfig.title,
           values: processedData
         }),
