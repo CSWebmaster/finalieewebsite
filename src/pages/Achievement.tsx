@@ -143,8 +143,8 @@ export default function Achievement() {
                 });
                 
                 setAwards(data);
-            } catch {
-                // silently fail â€” page still shows mock data for other tabs
+            } catch (error) {
+                // silently fail — page still shows mock data for other tabs
             } finally {
                 setLoading(false);
             }

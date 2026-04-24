@@ -24,7 +24,7 @@ export default function SubmitChange() {
   const validateJson = (val: string) => {
     if (!val.trim()) { setJsonError(''); return true; }
     try { JSON.parse(val); setJsonError(''); return true; }
-    catch { setJsonError('Invalid JSON — check your formatting.'); return false; }
+    catch (error) { setJsonError('Invalid JSON — check your formatting.'); return false; }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -40,7 +40,10 @@ export default function UpcomingEvents() {
       const upcomingEvents = data.filter(event => new Date(event.date) >= today)
         .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-      setEvents(upcomingEvents);
+        setEvents(upcomingEvents);
+      } catch (error) {
+        console.error("Error fetching events:", error);
+      }
     };
 
     fetchEvents();
