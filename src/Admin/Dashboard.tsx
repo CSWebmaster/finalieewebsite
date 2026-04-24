@@ -14,6 +14,7 @@ interface DashboardProps {
   navigateTo: (section: string) => void;
   userRole?: string;
   userEmail?: string;
+  userId?: string;
   // Legacy props from Admin.tsx that were being passed
   setSelectedEvent?: (e: any) => void;
   setSelectedAward?: (a: any) => void;
@@ -31,7 +32,8 @@ interface Stats {
 const Dashboard: React.FC<DashboardProps> = ({ 
   navigateTo, 
   userRole, 
-  userEmail 
+  userEmail,
+  userId
 }) => {
   const [stats, setStats] = useState<Stats>({ events: 0, members: 0, awards: 0, blogs: 0, pending: 0 });
   const [pendingItems, setPendingItems] = useState<any[]>([]);
@@ -70,10 +72,10 @@ const Dashboard: React.FC<DashboardProps> = ({
     // 2. Listen for Pending Changes (Real-time)
     // Core members only see their OWN pending items
     let qPending;
-    if (userRole === 'core_member' && userEmail) {
+    if (userRole === 'core_member' && userId) {
       qPending = query(
         collection(db, "pendingChanges"),
-        where("submittedByEmail", "==", userEmail.toLowerCase()),
+        where("submittedBy", "==", userId),
         limit(20) // Slightly larger limit to filter status client-side
       );
     } else {

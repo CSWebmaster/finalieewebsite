@@ -158,6 +158,7 @@ const Admin = () => {
             navigateTo={handleNavigate}
             userRole="core_member"
             userEmail={userData.email}
+            userId={userData.uid}
             setSelectedEvent={setSelectedEvent}
             setSelectedAward={setSelectedAward}
             setSelectedMember={setSelectedMember}
@@ -248,6 +249,7 @@ const Admin = () => {
           navigateTo={handleNavigate}
           userRole="webmaster"
           userEmail={userData.email}
+          userId={userData.uid}
           setSelectedEvent={setSelectedEvent}
           setSelectedAward={setSelectedAward}
           setSelectedMember={setSelectedMember}

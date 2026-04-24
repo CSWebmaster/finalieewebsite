@@ -49,7 +49,7 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
     if (userRole === 'core_member') {
       q = query(
         collection(db, "pendingChanges"), 
-        where("submittedByEmail", "==", auth.currentUser.email.toLowerCase())
+        where("submittedBy", "==", auth.currentUser.uid)
       );
     } else {
       q = query(
