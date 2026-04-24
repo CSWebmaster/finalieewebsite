@@ -6,6 +6,15 @@ import { doc, getDoc, collection, query, where, getDocs } from "firebase/firesto
 import { Lock, Mail, ShieldAlert, AlertCircle, Loader2, Eye, EyeOff } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
+const WEBMASTER_EMAILS = [
+  "ieee.wm@socet.edu.in",
+  "ieeewie.wm@silveroakuni.ac.in",
+  "ieeecs.wm@silveroakuni.ac.in",
+  "ieeesps.wm@silveroakuni.ac.in",
+  "ieeesight.wm@silveroakuni.ac.in",
+  "ptarang69@gmail.com"
+];
+
 const Authentication = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -31,10 +40,11 @@ const Authentication = () => {
       const user = userCredential.user;
       const userEmail = user.email!.trim().toLowerCase();
 
-      // 2. Legacy hardcoded bypass (unchanged)
+      // 2. Webmaster fast-path — identified by email
       let role: string | null = null;
       let mustChangePwd = false;
-      if (userEmail === "ptarang69@gmail.com") {
+      
+      if (WEBMASTER_EMAILS.includes(userEmail)) {
         role = "webmaster";
       }
 
