@@ -135,10 +135,14 @@ export default function Achievement() {
                     ...doc.data(),
                 })) as FirestoreAward[];
                 
-                // Sort client-side to avoid index requirements
+                // Sort client-side: prioritize year, then createdAt
                 data.sort((a: any, b: any) => {
-                    const timeA = a.createdAt?.toMillis?.() || 0;
-                    const timeB = b.createdAt?.toMillis?.() || 0;
+                    const yearA = parseInt(a.year) || 0;
+                    const yearB = parseInt(b.year) || 0;
+                    if (yearB !== yearA) return yearB - yearA;
+
+                    const timeA = a.createdAt?.seconds ? a.createdAt.seconds * 1000 : (a.createdAt instanceof Date ? a.createdAt.getTime() : 0);
+                    const timeB = b.createdAt?.seconds ? b.createdAt.seconds * 1000 : (b.createdAt instanceof Date ? b.createdAt.getTime() : 0);
                     return timeB - timeA;
                 });
                 

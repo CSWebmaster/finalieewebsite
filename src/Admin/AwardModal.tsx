@@ -105,6 +105,8 @@ const AwardModal: React.FC<AwardModalProps> = ({ isOpen, onClose, award, setSucc
     setLoading(true);
 
     try {
+      if (!userData) throw new Error("Authentication required.");
+
       const cleanImages = images.map(i => i.trim()).filter(i => i !== "");
       const awardData: any = {
         type: awardType,
@@ -112,36 +114,46 @@ const AwardModal: React.FC<AwardModalProps> = ({ isOpen, onClose, award, setSucc
         image: cleanImages[0] || "",
         images: cleanImages,
         description: awardDescription,
-        year: awardYear,
+        year: String(awardYear), // Ensure it's a string for consistency
         pdfUrl: pdfUrl,
-        ...(award ? {} : { createdAt: serverTimestamp() }),
         updatedAt: serverTimestamp(),
       };
 
+      if (!award) {
+        awardData.createdAt = serverTimestamp();
+      }
+
       if (awardType === "student") {
         awardData.studentName = studentName;
+        awardData.recipient = studentName; // Sync for list view
+      } else {
+        awardData.recipient = ""; // Default
       }
+      
       if (awardType === "newsletter") {
         awardData.newsletterType = newsletterType;
       }
 
-      if (!userData) throw new Error("Authentication required.");
+      // Capture the ID correctly from the award prop
+      const docId = award?.id || null;
+
+      console.log("[AwardModal] Submitting change. DocID:", docId, "Action:", docId ? "update" : "create");
 
       await submitContentChange(
         userData.uid,
         userData.name || userData.displayName || "Unknown",
         "awards",
         awardData,
-        award?.id || null,
+        docId,
         userData.email,
         userData.role
       );
 
-      setSuccess(award ? "Update request submitted!" : "New achievement request submitted!");
-      resetAwardForm();
+      setSuccess(award ? "Update request submitted successfully!" : "New achievement added for approval!");
       onClose();
     } catch (err: any) {
-      setError(`Error ${award ? 'updating' : 'adding'} award: ${err.message}`);
+      console.error("[AwardModal] Submission error:", err);
+      setError(`Error: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -150,42 +162,65 @@ const AwardModal: React.FC<AwardModalProps> = ({ isOpen, onClose, award, setSucc
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-screen overflow-y-auto">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xl font-semibold">{award ? 'Edit' : 'Add New'} Award</h3>
+    <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+      <div className="bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-slate-200 dark:border-slate-800 animate-in zoom-in-95 duration-300">
+        <div className="p-8">
+          <div className="flex justify-between items-start mb-8">
+            <div>
+              <div className="inline-block px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full text-[10px] font-black uppercase tracking-widest mb-2">
+                {award ? 'Update Entry' : 'New Achievement'}
+              </div>
+              <h3 className="text-3xl font-black tracking-tighter text-slate-900 dark:text-white uppercase">
+                {award ? 'Edit' : 'Add'} Achievement
+              </h3>
+            </div>
             <button
-              className="text-gray-600 hover:text-gray-800"
+              className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors"
               onClick={onClose}
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+              <svg className="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"></path>
               </svg>
             </button>
           </div>
 
-          <form onSubmit={handleSubmit}>
-            <div className="mb-4">
-              <label className="block text-gray-700 font-medium mb-2">Award Type</label>
-              <select
-                className="w-full border-gray-300 rounded-md shadow-sm px-4 py-2 bg-white focus:ring-blue-500 focus:border-blue-500"
-                value={awardType}
-                onChange={(e) => setAwardType(e.target.value)}
-                required
-              >
-                <option value="branch">Branch Achievement</option>
-                <option value="student">Student Achievement</option>
-                <option value="newsletter">Newsletter</option>
-              </select>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-xs font-black uppercase tracking-widest text-slate-500">Award Type</label>
+                <select
+                  className="w-full border-slate-200 dark:border-slate-800 rounded-xl shadow-sm px-4 py-3 bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-blue-500 transition-all font-bold text-sm"
+                  value={awardType}
+                  onChange={(e) => setAwardType(e.target.value)}
+                  required
+                >
+                  <option value="branch">Branch Achievement</option>
+                  <option value="student">Student Achievement</option>
+                  <option value="newsletter">Newsletter</option>
+                </select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-xs font-black uppercase tracking-widest text-slate-500">Year</label>
+                <input
+                  type="number"
+                  min="1900"
+                  max="2099"
+                  className="w-full border-slate-200 dark:border-slate-800 rounded-xl shadow-sm px-4 py-3 bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-blue-500 transition-all font-bold text-sm"
+                  placeholder="2025"
+                  value={awardYear}
+                  onChange={(e) => setAwardYear(e.target.value)}
+                  required
+                />
+              </div>
             </div>
 
-            <div className="mb-4">
-              <label className="block text-gray-700 font-medium mb-2">Award Title</label>
+            <div className="space-y-2">
+              <label className="text-xs font-black uppercase tracking-widest text-slate-500">Achievement Title</label>
               <input
                 type="text"
-                className="w-full border-gray-300 rounded-md shadow-sm px-4 py-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="Best Department Award"
+                className="w-full border-slate-200 dark:border-slate-800 rounded-xl shadow-sm px-4 py-3 bg-slate-50 dark:bg-slate-950 focus:ring-2 focus:ring-blue-500 transition-all font-bold text-sm"
+                placeholder="IEEE Outstanding Section Award"
                 value={awardTitle}
                 onChange={(e) => setAwardTitle(e.target.value)}
                 required
@@ -302,7 +337,7 @@ const AwardModal: React.FC<AwardModalProps> = ({ isOpen, onClose, award, setSucc
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                 disabled={loading}
               >
-                {loading ? "Saving..." : (userData.role === 'webmaster' ? (award ? "Update Award" : "Save Award") : (award ? "Propose Update" : "Submit for Approval"))}
+                {loading ? "Saving..." : (userData?.role === 'webmaster' ? (award ? "Update Award" : "Save Award") : (award ? "Propose Update" : "Submit for Approval"))}
               </button>
             </div>
           </form>

@@ -75,6 +75,7 @@ const NAV_ITEMS: NavItem[] = [
     ],
   },
   { title: "Bylaws", href: "/bylaws" },
+  { title: "Verify Certificate", href: "/verify-certificate" },
   { title: "Contact Us", href: "/contact" },
 ];
 

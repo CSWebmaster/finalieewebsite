@@ -62,6 +62,7 @@ const AwardDetails = lazy(() => import("./pages/AwardDetails"));
 const MemberDetails = lazy(() => import("./pages/MemberDetails"));
 const Bylaws = lazy(() => import("./pages/Bylaws"));
 const FAQ = lazy(() => import("./pages/FAQ"));
+const CertificateVerification = lazy(() => import("./pages/CertificateVerification"));
 
 import ScrollProgressBar from "@/components/ScrollProgressBar";
 import ScrollToTop from "@/components/ScrollToTop";
@@ -172,6 +173,7 @@ function App() {
                   <Route path="/login" element={<Login />} />
                   <Route path="/privacy" element={<Privacy />} />
                   <Route path="/terms" element={<Terms />} />
+                  <Route path="/verify-certificate" element={<CertificateVerification />} />
                   <Route path="/blogs" element={<BlogList />} />
                   <Route path="/blogs/category/:category" element={<BlogList />} />
                   <Route path="/blogs/:id" element={<BlogDetail />} />

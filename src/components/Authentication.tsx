@@ -12,7 +12,6 @@ const WEBMASTER_EMAILS = [
   "ieeecs.wm@silveroakuni.ac.in",
   "ieeesps.wm@silveroakuni.ac.in",
   "ieeesight.wm@silveroakuni.ac.in",
-  "ptarang69@gmail.com"
 ];
 
 const Authentication = () => {

@@ -156,6 +156,43 @@ app.post("/api/chat", async (req: express.Request, res: express.Response) => {
 });
 
 
+// POST /api/verify - Certificate Verification Portal
+import { verifyCertificate } from "./lib/verify";
+
+app.post("/api/verify", async (req: express.Request, res: express.Response) => {
+  try {
+    const { certificate_id, name } = req.body;
+
+    if (!certificate_id || !name) {
+      res.status(400).json({ error: "Certificate ID and Name are required." });
+      return;
+    }
+
+    const result = await verifyCertificate(certificate_id, name);
+
+    if (result.valid) {
+      res.json(result);
+    } else {
+      res.status(404).json({ valid: false, error: result.error });
+    }
+  } catch (error: any) {
+    console.error("API Route Error:", error);
+
+    let errorMessage = "Internal Server Error";
+
+    if (error.message?.includes("MISSING_CREDENTIALS")) {
+      errorMessage = "System Configuration Error: service-account-key.json is missing. Please add it to the project root.";
+    } else if (error.message?.includes("CONFIG_ERROR")) {
+      errorMessage = "Environment Variable Error: GOOGLE_CREDS is invalid. Check your .env file.";
+    } else if (error.message?.includes("FOLDER_ID")) {
+      errorMessage = "Configuration Error: FOLDER_ID is missing from .env.";
+    }
+
+    res.status(500).json({ error: errorMessage });
+  }
+});
+
+
 // POST /api/send-email
 app.post("/api/send-email", async (req: express.Request, res: express.Response) => {
   // Force reload .env file values dynamically per request

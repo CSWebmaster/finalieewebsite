@@ -52,10 +52,7 @@ const AwardPreviewList: React.FC<AwardsPreviewListProps> = ({
     setLoading(true);
     try {
       // ── Reverted to legacy collection: awards ──
-      const awardsQuery = query(
-        collection(db, "awards"),
-        orderBy("year", "desc")
-      );
+      const awardsQuery = query(collection(db, "awards"));
 
       // Set up real-time listener
       const unsubscribe = onSnapshot(
@@ -65,6 +62,18 @@ const AwardPreviewList: React.FC<AwardsPreviewListProps> = ({
             id: doc.id,
             ...doc.data(),
           }));
+          
+          // Sort client-side: prioritize year, then createdAt
+          awardsList.sort((a: any, b: any) => {
+            const yearA = parseInt(a.year) || 0;
+            const yearB = parseInt(b.year) || 0;
+            if (yearB !== yearA) return yearB - yearA;
+            
+            const timeA = a.createdAt?.toMillis?.() || 0;
+            const timeB = b.createdAt?.toMillis?.() || 0;
+            return timeB - timeA;
+          });
+
           setAwards(awardsList);
           setLoading(false);
         },
@@ -159,14 +168,15 @@ const AwardPreviewList: React.FC<AwardsPreviewListProps> = ({
           {currentAwards.map((award) => (
             <div
               key={award.id}
-              className="bg-white border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow"
+              onClick={() => handleEdit(award)}
+              className="group bg-white border rounded-xl overflow-hidden shadow-sm hover:shadow-blue-500/10 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 cursor-pointer flex flex-col h-full"
             >
-              <div className="aspect-w-1 aspect-h-1 bg-gray-100">
+              <div className="aspect-w-1 aspect-h-1 bg-slate-50 dark:bg-slate-900/50 relative overflow-hidden flex items-center justify-center p-4 h-64">
                 {award.image ? (
                   <img loading="lazy"
                     src={award.image}
                     alt={award.title}
-                    className="object-cover w-full h-64"
+                    className="max-w-full max-h-full object-contain transition-transform duration-500 group-hover:scale-105 z-10"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
                       target.onerror = null;
@@ -174,7 +184,7 @@ const AwardPreviewList: React.FC<AwardsPreviewListProps> = ({
                     }}
                   />
                 ) : (
-                  <div className="w-full h-64 flex items-center justify-center bg-gray-100">
+                  <div className="w-full h-full flex items-center justify-center bg-gray-100">
                     <svg
                       className="w-16 h-16 text-gray-300"
                       fill="currentColor"
@@ -184,36 +194,42 @@ const AwardPreviewList: React.FC<AwardsPreviewListProps> = ({
                     </svg>
                   </div>
                 )}
+                {/* Backdrop glow */}
+                <div className="absolute inset-0 blur-xl opacity-10 scale-125">
+                   <img src={award.image} alt="" className="w-full h-full object-cover" />
+                </div>
               </div>
 
-              <div className="p-4">
-                <h3 className="font-semibold text-lg text-gray-800">
+              <div className="p-4 flex flex-col flex-1">
+                <h3 className="font-bold text-base text-gray-800 line-clamp-2 group-hover:text-blue-600 transition-colors mb-2">
                   {award.title || "Unnamed Award"}
                 </h3>
-                {award.year && (
-                  <p className="text-sm text-gray-500 mt-1">
-                    <span className="font-medium">Year:</span> {award.year}
-                  </p>
-                )}
-                {award.recipient && (
-                  <p className="text-sm text-gray-500">
-                    <span className="font-medium">Recipient:</span> {award.recipient}
-                  </p>
-                )}
-                {award.description && (
-                  <p className="text-sm text-gray-600 mt-2 line-clamp-3">
-                    {award.description}
-                  </p>
-                )}
-
-                <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
+                <div className="space-y-1 mt-auto">
+                  {award.year && (
+                    <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest flex items-center gap-1">
+                      <span className="w-1 h-1 bg-blue-500 rounded-full"></span>
+                      Year: {award.year}
+                    </p>
+                  )}
+                  {award.recipient && (
+                    <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest flex items-center gap-1">
+                      <span className="w-1 h-1 bg-purple-500 rounded-full"></span>
+                      Recipient: {award.recipient}
+                    </p>
+                  )}
+                </div>
+                
+                <div className="mt-4 pt-3 border-t border-gray-50 flex items-center justify-between">
+                  <div className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded uppercase tracking-tighter opacity-0 group-hover:opacity-100 transition-opacity">
+                    Click to Edit
+                  </div>
                   <button
-                    onClick={() => handleEdit(award)}
-                    className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+                    onClick={(e) => { e.stopPropagation(); handleEdit(award); }}
+                    className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
                     title="Edit"
                   >
                     <svg
-                      className="w-5 h-5"
+                      className="w-4 h-4"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -221,15 +237,11 @@ const AwardPreviewList: React.FC<AwardsPreviewListProps> = ({
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        strokeWidth="2"
+                        strokeWidth="2.5"
                         d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                       />
                     </svg>
                   </button>
-
-                   <div className="flex items-center space-x-2">
-                       {/* Deletion restricted to moderation queue */}
-                    </div>
                 </div>
               </div>
             </div>
