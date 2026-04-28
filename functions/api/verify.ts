@@ -46,7 +46,7 @@ async function getGoogleAccessToken(clientEmail: string, privateKey: string, sco
   const pemHeader = '-----BEGIN PRIVATE KEY-----';
   const pemFooter = '-----END PRIVATE KEY-----';
   if (!privateKey.includes(pemHeader)) throw new Error("Invalid private key format");
-  
+
   const pemContents = privateKey.substring(
     privateKey.indexOf(pemHeader) + pemHeader.length,
     privateKey.indexOf(pemFooter)
@@ -89,7 +89,7 @@ async function getGoogleAccessToken(clientEmail: string, privateKey: string, sco
 async function verifyCertificate(certificateId: string, nameOrEmail: string, token: string, folderId: string) {
   // 1. List all spreadsheets in folder
   const driveUrl = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(`'${folderId}' in parents and trashed = false`)}&fields=files(id,name,mimeType)`;
-  
+
   let driveRes = await fetch(driveUrl, { headers: { Authorization: `Bearer ${token}` } });
   let driveData: any = await driveRes.json();
 
@@ -106,7 +106,7 @@ async function verifyCertificate(certificateId: string, nameOrEmail: string, tok
 
   if (spreadsheetFiles.length === 0) {
     const foundNames = files.map((f: any) => `${f.name}`).join(', ');
-    const errorMsg = files.length > 0 
+    const errorMsg = files.length > 0
       ? `I found ${files.length} file(s) [${foundNames.substring(0, 200)}...], but none are Google Sheets. Please "Save as Google Sheets".`
       : `No files found. Please SHARE your spreadsheet folder with the service account.`;
     return { valid: false, error: errorMsg };
@@ -115,12 +115,12 @@ async function verifyCertificate(certificateId: string, nameOrEmail: string, tok
   // 2. Iterate and search
   for (const file of spreadsheetFiles) {
     if (!file.id) continue;
-    
+
     // Get sheets metadata
     const sheetsMetaUrl = `https://sheets.googleapis.com/v4/spreadsheets/${file.id}?fields=sheets.properties.title`;
     const metaRes = await fetch(sheetsMetaUrl, { headers: { Authorization: `Bearer ${token}` } });
     if (!metaRes.ok) continue;
-    
+
     const metaData: any = await metaRes.json();
     const sheetsList = metaData.sheets || [];
 
@@ -138,7 +138,7 @@ async function verifyCertificate(certificateId: string, nameOrEmail: string, tok
       if (!rows || rows.length === 0) continue;
 
       const headers = rows[0].map((h: any) => (h || '').toString().trim().toLowerCase());
-      
+
       const certIdIdx = headers.findIndex((h: string) => h.includes('certificate') && h.includes('id'));
       const nameIdx = headers.findIndex((h: string) => h === 'name' || h.includes('full name'));
       const emailIdx = headers.findIndex((h: string) => h.includes('email') || h === 'e-mail');
@@ -152,8 +152,8 @@ async function verifyCertificate(certificateId: string, nameOrEmail: string, tok
         const rowEmail = emailIdx !== -1 ? (row[emailIdx] || '').toString().trim() : '';
 
         const idMatches = rowCertId.toLowerCase() === certificateId.toLowerCase();
-        const identityMatches = 
-          (rowName.toLowerCase() === nameOrEmail.toLowerCase()) || 
+        const identityMatches =
+          (rowName.toLowerCase() === nameOrEmail.toLowerCase()) ||
           (rowEmail.toLowerCase() === nameOrEmail.toLowerCase());
 
         return idMatches && identityMatches;
