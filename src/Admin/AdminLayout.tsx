@@ -11,10 +11,10 @@ import {
   Landmark,
   Layers,
   BookOpen,
-  CheckSquare,
   Activity,
   FormInput,
-  ClipboardList
+  ClipboardList,
+  Settings
 } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
@@ -204,6 +204,15 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
                     <Activity className="h-4 w-4 mr-2" />
                     Audit Logs
                   </Button>
+
+                  <Button
+                    variant={activeTab === "settings" ? "default" : "ghost"}
+                    className="w-full justify-start h-10"
+                    onClick={() => onTabChange("settings")}
+                  >
+                    <Settings className="h-4 w-4 mr-2" />
+                    Platform Settings
+                  </Button>
                 </>
               )}
 
@@ -287,7 +296,8 @@ const AdminLayout: React.FC<AdminLayoutProps> = ({
                   { id: 'forms', icon: <FormInput className="h-4 w-4" />, label: 'Forms' },
                   { id: 'submissions', icon: <ClipboardList className="h-4 w-4" />, label: 'Data' },
                   { id: 'approvals', icon: <CheckSquare className="h-4 w-4" />, label: 'Approvals', badge: pendingChangesCount },
-                  { id: 'users', icon: <Users className="h-4 w-4" />, label: 'Users' }
+                  { id: 'users', icon: <Users className="h-4 w-4" />, label: 'Users' },
+                  { id: 'settings', icon: <Settings className="h-4 w-4" />, label: 'Settings' }
                 ] : []),
                 ...(userRole === 'core_member' ? [
                   { id: 'my-submissions', icon: <CheckSquare className="h-4 w-4" />, label: 'Subs' }

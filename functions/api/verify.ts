@@ -212,38 +212,55 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   }
 
   try {
-    // Determine configuration
+    // Fetch dynamic configuration from Firestore REST API
     let folderId = env.FOLDER_ID;
+    
+    // Default projectId from .env
+    let projectId = "sbversion-07march";
+    
+    // Parse Credentials
     let credsStr = env.GOOGLE_CREDS;
+    let clientEmail = env.client_email || env['"client_email"'];
+    let privateKey = env.private_key || env['"private_key"'];
+    
+    if (credsStr) {
+      try {
+        const creds = JSON.parse(credsStr);
+        clientEmail = creds.client_email;
+        privateKey = creds.private_key;
+        if (creds.project_id) projectId = creds.project_id;
+      } catch (e) {
+        console.warn("GOOGLE_CREDS is not valid JSON");
+      }
+    } else if (env.project_id || env['"project_id"']) {
+      projectId = (env.project_id || env['"project_id"']) as string;
+    }
 
-    // Provide helpful error messages if missing
+    if (!clientEmail || !privateKey) {
+      return new Response(
+        JSON.stringify({ error: "Configuration Error: Missing Google Credentials. Please add client_email and private_key to Cloudflare Pages environment variables." }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    privateKey = privateKey.replace(/\\n/g, '\n');
+
+    // Fetch Dynamic Folder ID from Firestore
+    try {
+      const fsRes = await fetch(`https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/settings/certificates`);
+      if (fsRes.ok) {
+        const fsData = await fsRes.json() as any;
+        if (fsData.fields?.folderId?.stringValue) {
+          folderId = fsData.fields.folderId.stringValue;
+        }
+      }
+    } catch (e) {
+      console.warn("Failed to fetch dynamic folder ID from Firestore", e);
+    }
+
     if (!folderId) {
       return new Response(
-        JSON.stringify({ error: "Configuration Error: FOLDER_ID environment variable is missing in Cloudflare Pages." }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    if (!credsStr) {
-      return new Response(
-        JSON.stringify({ error: "Configuration Error: GOOGLE_CREDS environment variable is missing in Cloudflare Pages. Please set it to the JSON string of your service account key." }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    let creds;
-    try {
-      creds = JSON.parse(credsStr);
-    } catch (e) {
-      return new Response(
-        JSON.stringify({ error: "Configuration Error: GOOGLE_CREDS is not valid JSON. Ensure it is copied correctly." }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    if (!creds.client_email || !creds.private_key) {
-      return new Response(
-        JSON.stringify({ error: "Configuration Error: GOOGLE_CREDS is missing client_email or private_key." }),
+        JSON.stringify({ error: "Configuration Error: FOLDER_ID is missing. Please set it in the Admin Panel settings or as a Cloudflare Environment Variable." }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

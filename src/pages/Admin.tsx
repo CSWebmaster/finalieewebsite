@@ -22,6 +22,7 @@ import PendingApprovals from "../Admin/PendingApprovals";
 import AuditHistory from "../Admin/AuditHistory";
 import FormManagement from "../Admin/FormManagement";
 import FormResponses from "../Admin/FormResponses";
+import PlatformSettings from "../Admin/PlatformSettings";
 // import DataMigration from "../Admin/DataMigration"; (Removed)
 
 // ── Core member panel
@@ -107,6 +108,7 @@ const Admin = () => {
       submit: "submit", 
       "my-submissions": "my-submissions", 
       mysubmissions: "my-submissions",
+      settings: "settings",
     };
     if (tabMap[section]) { setActiveTab(tabMap[section]); return; }
 
@@ -315,6 +317,7 @@ const Admin = () => {
       {activeTab === "history"   && <AuditHistory />}
       {activeTab === "forms"     && <FormManagement />}
       {activeTab === "submissions" && <FormResponses />}
+      {activeTab === "settings"  && <PlatformSettings />}
       {/* {activeTab === "migration" && <DataMigration />} */}
 
       {/* Modals */}
