@@ -266,7 +266,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     }
 
     // Authenticate
-    const token = await getGoogleAccessToken(creds.client_email, creds.private_key, [
+    const token = await getGoogleAccessToken(clientEmail, privateKey, [
       'https://www.googleapis.com/auth/drive.readonly',
       'https://www.googleapis.com/auth/spreadsheets.readonly'
     ]);
