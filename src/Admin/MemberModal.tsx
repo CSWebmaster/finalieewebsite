@@ -22,6 +22,7 @@ const MemberModal: React.FC<MemberModalProps> = ({ isOpen, onClose, member, setS
   const [memberDepartment, setMemberDepartment] = useState("");
   const [memberEducation, setMemberEducation] = useState("");
   const [memberLinkedin, setMemberLinkedin] = useState("");
+  const [memberPortfolio, setMemberPortfolio] = useState("");
   const [memberCommittee, setMemberCommittee] = useState("");
   const [memberSociety, setMemberSociety] = useState("");
   const [memberCorePosition, setMemberCorePosition] = useState("");
@@ -39,6 +40,7 @@ const MemberModal: React.FC<MemberModalProps> = ({ isOpen, onClose, member, setS
       setMemberDepartment(member.department || "");
       setMemberEducation(member.education || "");
       setMemberLinkedin(member.linkedin || "");
+      setMemberPortfolio(member.portfolio || "");
       setMemberCommittee(member.committee || "");
       setMemberSociety(member.society || "");
       setMemberObjectPosition(member.objectPosition || "center 20%");
@@ -65,6 +67,7 @@ const MemberModal: React.FC<MemberModalProps> = ({ isOpen, onClose, member, setS
     setMemberDepartment("");
     setMemberEducation("");
     setMemberLinkedin("");
+    setMemberPortfolio("");
     setMemberCommittee("");
     setMemberSociety("");
     setMemberCorePosition("");
@@ -85,6 +88,7 @@ const MemberModal: React.FC<MemberModalProps> = ({ isOpen, onClose, member, setS
         name: memberName,
         designation: memberDesignation,
         linkedin: memberLinkedin,
+        portfolio: memberPortfolio,
         displayOrder: Number(memberDisplayOrder) || 999,
         objectPosition: memberObjectPosition,
         updatedAt: serverTimestamp(),
@@ -171,6 +175,7 @@ const MemberModal: React.FC<MemberModalProps> = ({ isOpen, onClose, member, setS
               <Input label="Designation" value={memberDesignation} onChange={setMemberDesignation} placeholder="Professor" required />
             )}
             <Input label="LinkedIn Profile URL" value={memberLinkedin} onChange={setMemberLinkedin} placeholder="https://linkedin.com/in/johndoe" />
+            <Input label="Portfolio URL (optional)" value={memberPortfolio} onChange={setMemberPortfolio} placeholder="https://example.com" />
 
             {/* Display Order */}
             <Input

@@ -31,7 +31,7 @@ export const submitContentChange = async (
   docId: string | null = null,
   userEmail?: string,
   role?: string,
-  action: 'create' | 'update' | 'delete' = 'create'
+  action?: 'create' | 'update' | 'delete'
 ) => {
   if (!userId) throw new Error("User must be logged in to submit changes.");
 

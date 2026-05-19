@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Search } from "lucide-react";
 import LinkedInIcon from "@/components/LinkedInIcon";
+import PortfolioIcon from "@/components/PortfolioIcon";
 import PageLayout from "@/components/PageLayout";
 import { Input } from "@/components/ui/input";
 import { TypingAnimation } from "@/components/TypingAnimation";
@@ -194,10 +195,16 @@ export default function TeamCore() {
                           <p className="text-sm text-gray-700 dark:text-gray-300 text-center font-medium">
                             {member.position}
                           </p>
-                          <LinkedInIcon
-                            href={member.linkedin}
-                            onClick={(e) => e.stopPropagation()}
-                          />
+                          <div className="flex items-center gap-2">
+                            <LinkedInIcon
+                              href={member.linkedin}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                            <PortfolioIcon
+                              href={member.portfolio}
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          </div>
                         </div>
                         {(member.education || member.department) && (
                           <p className="text-xs text-muted-foreground dark:text-gray-400 mt-2">

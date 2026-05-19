@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 import LinkedInIcon from "@/components/LinkedInIcon";
+import PortfolioIcon from "@/components/PortfolioIcon";
 import PageLayout from "@/components/PageLayout";
 import { Input } from "@/components/ui/input";
 import { TypingAnimation } from "@/components/TypingAnimation";
@@ -289,10 +290,16 @@ export default function TeamExecutive() {
                             <p className="text-xs text-gray-600 dark:text-gray-300 text-center font-semibold tracking-wide">
                               {member.position}
                             </p>
-                            <LinkedInIcon
-                              href={member.linkedin}
-                              onClick={(e) => e.stopPropagation()}
-                            />
+                            <div className="flex items-center gap-2">
+                              <LinkedInIcon
+                                href={member.linkedin}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                              <PortfolioIcon
+                                href={member.portfolio}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </div>
                           </div>
                           {(member.education || member.department) && (
                             <p className="text-[11px] text-muted-foreground dark:text-gray-400 mt-2 line-clamp-1">

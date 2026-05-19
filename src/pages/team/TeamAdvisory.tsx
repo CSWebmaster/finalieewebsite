@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Search } from "lucide-react";
 import LinkedInIcon from "@/components/LinkedInIcon";
+import PortfolioIcon from "@/components/PortfolioIcon";
 import PageLayout from "@/components/PageLayout";
 import { Input } from "@/components/ui/input";
 import { TypingAnimation } from "@/components/TypingAnimation";
@@ -13,11 +14,13 @@ interface Member {
   id: string;
   name: string;
   linkedin: string;
+  portfolio?: string;
   image: string;
   education: string;
   designation: string;
   createdAt: any;
   type: string;
+  objectPosition?: string;
 }
 
 // Using a consistent hover effect for all members
@@ -135,10 +138,16 @@ export default function TeamAdvisory() {
                     <p className="text-sm text-gray-700 dark:text-gray-300 text-center font-medium">
                       {member.designation}
                     </p>
-                    <LinkedInIcon
-                      href={member.linkedin}
-                      onClick={(e) => e.stopPropagation()}
-                    />
+                    <div className="flex items-center gap-2">
+                      <LinkedInIcon
+                        href={member.linkedin}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      <PortfolioIcon
+                        href={member.portfolio}
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </div>
                   </div>
                   <p className="text-xs text-muted-foreground dark:text-gray-400 mt-2">
                     {member.education && `: ${member.education}`}
